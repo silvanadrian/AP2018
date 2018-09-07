@@ -37,7 +37,6 @@ evalSimple (Pow a b) = evalSimple(a) ^ evalSimple(b)
 evalSimple _ = error "is not supported"
 
 extendEnv :: VName -> Integer -> Env -> Env
-extendEnv = undefined
 extendEnv v n r =  \a -> if v == a then Just n else r a
 
 evalFull :: Exp -> Env -> Integer
