@@ -25,11 +25,16 @@ showExp (Sub a b) = "(" ++ (showExp (a)) ++ " - " ++ (showExp (b)) ++ ")"
 showExp (Mul a b) = "(" ++ (showExp (a)) ++ " * " ++ (showExp (b)) ++ ")"
 showExp (Div a b) = "(" ++ (showExp (a)) ++ " / " ++ (showExp (b)) ++ ")"
 showExp (Pow a b) = "(" ++ (showExp (a)) ++ "^" ++ (showExp (b)) ++ ")"
-showExp _ = error "NOOOOOOO"
+showExp _ = error "is not supported"
 
 evalSimple :: Exp -> Integer
---evalSimple (Div (Cst a) (Cst b)) = a div` b
-evalSimple = undefined
+evalSimple (Cst a) = a
+evalSimple (Add a b) = evalSimple(a) + evalSimple(b)
+evalSimple (Sub a b) = evalSimple(a) - evalSimple(b)
+evalSimple (Mul a b) = evalSimple(a) * evalSimple(b)
+evalSimple (Div a b) = evalSimple(a) `div` evalSimple(b)
+evalSimple (Pow a b) = evalSimple(a) ^ evalSimple(b)
+evalSimple _ = error "is not supported"
 
 extendEnv :: VName -> Integer -> Env -> Env
 extendEnv = undefined
