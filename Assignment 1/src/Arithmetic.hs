@@ -51,7 +51,7 @@ evalFull (Mul a b) r = evalFull a r * evalFull b r
 evalFull (Div a b) r = evalFull a r `div` evalFull b r
 evalFull (Pow a b) r = evalFull a r ^ evalFull b r
 
-evalFull (If _ _ _) _ = undefined
+evalFull (If a b c) r = if evalFull a r /= 0 then evalFull b r else evalFull c r
 evalFull (Var v) r = intTest(r v)
 evalFull (Let _ _ _) _ = undefined
 evalFull (Sum _ _ _ _) _ = undefined
