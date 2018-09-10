@@ -54,7 +54,7 @@ evalFull (Pow a b) r = evalFull a r ^ evalFull b r
 evalFull (If a b c) r = if evalFull a r /= 0 then evalFull b r else evalFull c r
 evalFull (Var v) r = intTest(r v)
 evalFull (Let _ _ _) _ = undefined
-evalFull (Sum _ _ _ _) _ = undefined
+evalFull (Sum a b c d) r = if evalFull b r > evalFull c r then 0 else evalFull c r
 evalFull _ _ = error "is not supported"
 --evalFull (Var v) r = if r v == Nothing then error "HHH" else r v --Maybe integer
 
