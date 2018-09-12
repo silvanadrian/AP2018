@@ -17,6 +17,7 @@ module Arithmetic
 where
 
 import Definitions
+import Data.Either
 
 showExpStr :: Exp -> Exp -> String -> String
 showExpStr a b s = "(" ++ showExp a ++ s ++ showExp b ++ ")"
@@ -62,7 +63,6 @@ evalFull (Sub a b) r = evalFull a r - evalFull b r
 evalFull (Mul a b) r = evalFull a r * evalFull b r
 evalFull (Div a b) r = evalFull a r `div` evalFull b r
 evalFull (Pow a b) r = evalFull a r ^ evalFull b r
-
 evalFull (If a b c) r =
   if evalFull a r /= 0 then evalFull b r else evalFull c r
 evalFull (Var v) r = intTest(r v)
@@ -70,45 +70,54 @@ evalFull (Let a b c) r = evalFull c (extendEnv a (evalFull b r) r)
 evalFull (Sum v a b c) r =
   summ v (evalFull a r) (evalFull b r) c (extendEnv v (evalFull a r) r)
 
-intTestErr :: Maybe Integer -> VName -> Either ArithError Integer
-intTestErr (Just i) _ = Right i
-intTestErr _ v = Left (EBadVar v)
-
-infinity = (read "Infinity")::Integer
-
-makeInt :: Either ArithError Integer -> Integer
-makeInt (Right x) = x
-makeInt (Left x) = infinity
-
 -- summ' :: VName -> Integer -> Integer -> Exp -> Env -> Integer
 -- summ' v a b c r = if a > b then Right 0 else
 --   Right (evalErr c r) + Right (summ' v (a+1) b c (extendEnv v (a+1) r))
 
-extendEnvErr :: VName -> Either ArithError Integer -> Env -> Env
-extendEnvErr v n r a = extendEnv v (makeInt n) r a
-
+intTestErr :: Maybe Integer -> VName -> Either ArithError Integer
+intTestErr (Just i) _ = Right i
+intTestErr _ v = Left (EBadVar v)
 
 evalErr :: Exp -> Env -> Either ArithError Integer
 evalErr (Cst a) _ = Right a
-evalErr (Add a b) r = c + d
-  where 
-    c = case evalErr a r of
-      Right y -> y
-    d = case evalErr b r of 
-      Right y -> y
-evalErr (Sub a b) r = evalErr a r - evalErr b r
-evalErr (Mul a b) r = evalErr a r * evalErr b r
-evalErr (Div a b) r = if evalErr b == 0 then Left EDivZero else evalErr a r `div` evalErr b r
-evalErr (Pow a b) r = if evalErr b < 0 then Left ENegPower else evalErr a r ^ evalErr b r
-
-evalErr (If a b c) r =
-  if evalErr a r /= 0 then evalErr b r else evalErr c r
+evalErr (Add a b) r = evalEither (evalErr a r) (+) (evalErr b r)
+evalErr (Sub a b) r = evalEither (evalErr a r) (-) (evalErr b r)
+evalErr (Mul a b) r = evalEither (evalErr a r) (*) (evalErr b r)
+evalErr (Div a b) r = if isRight (evalErr b r)
+                        then if fromRight' (evalErr b r) /= 0
+                          then evalEither (evalErr a r) div (evalErr b r)
+                          else Left EDivZero
+                        else evalErr b r
+evalErr (Pow a b) r = if isRight (evalErr b r)
+                        then if fromRight' (evalErr b r) >= 0
+                          then evalEither (evalErr a r) (^) (evalErr b r)
+                          else Left ENegPower
+                        else evalErr b r
+evalErr (If a b c) r = if isRight (evalErr a r)
+                          then if fromRight' (evalErr a r) /= 0
+                            then evalErr b r
+                            else evalErr c r
+                        else (evalErr a r)
 evalErr (Var v) r = intTestErr (r v) v
-evalErr (Let a b c) r = evalErr c (extendEnvErr a (evalErr b r) r)
-evalErr (Sum v a b c) r =
-  Right (summ v (makeInt(evalErr a r)) (makeInt(evalErr b r)) c (extendEnvErr v (evalErr a r) r))
+evalErr (Let a b c) r = if isRight (evalErr b r)
+                          then evalErr c (extendEnv a (fromRight'(evalErr b r)) r)
+                          else evalErr b r
+
+-- evalErr (Sum v a b c) r =
+--  Right (summ v (makeInt(evalErr a r)) (makeInt(evalErr b r)) c (extendEnvErr v (evalErr a r) r))
 
 -- optional parts (if not attempted, leave them unmodified)
+
+evalEither :: Either a i -> (i -> i -> i) -> Either a i -> Either a i
+evalEither a b c = if isRight a
+                        then if isRight c
+                          then Right ( b (fromRight' a) (fromRight' c))
+                          else c
+                        else a
+
+fromRight' :: Either a b -> b
+fromRight' (Right c) = c
+fromRight' _ = error ("No value")                       
 
 showCompact :: Exp -> String
 showCompact = undefined
