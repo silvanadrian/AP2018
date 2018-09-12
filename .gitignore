@@ -1,4 +1,8 @@
+# Mac Ignore DS_Store Files
 .DS_Store
+
+# Minted
+_minted-report
 
 *.aux
 *.glo

@@ -1,5 +1,17 @@
 \documentclass[12pt]{article}
 \usepackage[english, science, large]{ku-frontpage}
+\usepackage{minted}
+\setminted[haskell]{
+frame=lines,
+framesep=2mm,
+baselinestretch=1.1,
+fontsize=\footnotesize,
+linenos,
+breaklines}
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0},
+}
 \begin{document}
 
 \title{Haskell intro}
@@ -9,5 +21,17 @@
 \date{Handed in: \today}
 	
 \maketitle
+\tableofcontents
+
+\section{Design/Implementation}
+
+\section{Code Assessment}
+
+\appendix
+
+\section{Code Listing}
+
+\inputminted{haskell}{src/Arithmetic.hs}
+
 
 \end{document}}
