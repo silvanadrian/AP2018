@@ -116,6 +116,8 @@ evalEither a b c = if isRight a
                           else c
                         else a
 
+-- use own implementation of fromRight from Data.Either but not returning a 
+-- default value, which is not needed for the assignment
 fromRight' :: Either a b -> b
 fromRight' (Right c) = c
 fromRight' _ = error "No value"                              
