@@ -97,7 +97,7 @@ evalErr (If a b c) r = if isRight (evalErr a r)
                           then if fromRight' (evalErr a r) /= 0
                             then evalErr b r
                             else evalErr c r
-                        else (evalErr a r)
+                        else evalErr a r
 evalErr (Var v) r = intTestErr (r v) v
 evalErr (Let a b c) r = if isRight (evalErr b r)
                           then evalErr c (extendEnv a (fromRight'(evalErr b r)) r)
@@ -106,12 +106,10 @@ evalErr (Let a b c) r = if isRight (evalErr b r)
 evalErr (Sum v a b c) r = if isRight (evalErr a r)
                             then if isRight (evalErr b r)
                               then Right (summ v (fromRight' (evalErr a r)) (fromRight' (evalErr b r)) c (extendEnv v (fromRight'(evalErr a r)) r))
-                              else (evalErr b r)
-                            else (evalErr a r)
-  
--- optional parts (if not attempted, leave them unmodified)
+                              else evalErr b r
+                            else evalErr a r
 
-evalEither :: Either a i -> (i -> i -> i) -> Either a i -> Either a i
+evalEither :: Either a b -> (b -> b -> b) -> Either a b -> Either a b
 evalEither a b c = if isRight a
                         then if isRight c
                           then Right ( b (fromRight' a) (fromRight' c))
@@ -120,7 +118,9 @@ evalEither a b c = if isRight a
 
 fromRight' :: Either a b -> b
 fromRight' (Right c) = c
-fromRight' _ = error ("No value")                       
+fromRight' _ = error "No value"                              
+  
+-- optional parts (if not attempted, leave them unmodified)                    
 
 showCompact :: Exp -> String
 showCompact = undefined
