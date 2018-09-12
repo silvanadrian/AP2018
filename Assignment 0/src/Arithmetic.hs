@@ -103,9 +103,12 @@ evalErr (Let a b c) r = if isRight (evalErr b r)
                           then evalErr c (extendEnv a (fromRight'(evalErr b r)) r)
                           else evalErr b r
 
--- evalErr (Sum v a b c) r =
---  Right (summ v (makeInt(evalErr a r)) (makeInt(evalErr b r)) c (extendEnvErr v (evalErr a r) r))
-
+evalErr (Sum v a b c) r = if isRight (evalErr a r)
+                            then if isRight (evalErr b r)
+                              then Right (summ v (fromRight' (evalErr a r)) (fromRight' (evalErr b r)) c (extendEnv v (fromRight'(evalErr a r)) r))
+                              else (evalErr b r)
+                            else (evalErr a r)
+  
 -- optional parts (if not attempted, leave them unmodified)
 
 evalEither :: Either a i -> (i -> i -> i) -> Either a i -> Either a i
