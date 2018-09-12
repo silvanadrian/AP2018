@@ -1,6 +1,7 @@
-\documentclass[12pt]{article}
+\documentclass[12pt,a4paper]{article}
 \usepackage[english, science, large]{ku-frontpage}
 \usepackage{tabularx}
+\usepackage{ltablex}
 \usepackage{minted}
 \setminted[haskell]{
 frame=lines,
@@ -30,6 +31,8 @@ For Example the function `showExpr` would have had too much duplicated code whic
 Also the function `summ` is a good example for making it more readable by moving the functionality out of `evalFull` and only call the function from there.
 This also helps with reusability overall in the code in case one of the functions can be used many times (like `summ` in `evalFull` and `evalError`).
 
+Additionally we also didn't check for division by zero in `evalSimple` or `evalFull` since haskell takes care of those errors.
+
 We also tried to use as much as possible out of the standard library for \textbf{Either} like `isRight` otherwise we would have had to implement it ourselves (or end up doing something totally different). For `fromRight` we decided to implement it ourselves as `fromRight'` in which we don't have to pass any default value and return an error in case it's not a `Right Either`.
 
 Overall we tried to keep it as simple as possible and declutter code wherever it was possible.
@@ -41,13 +44,14 @@ By moving some functionality into own functions we do believe we increased the m
 
 We also try to handle all kind of edge cases as good as possible that the code should be able to handle errors or wrong inputs (either by error message or haskell error depending on which eval function).
 
+Additionally we sometimes ended up with long lines (longer then 80 Chars) which might not seem that nice sometimes but for the sake of having a one line solution it was a necessary evil.
+
 Sadly we didn't write any tests for our code, which might support our assessment even more.
 
 But we did test it via the `onlineta` which tests already lots of cases.
 
 \subsection{Test Results Online TA}
-\begin{table}[htbp]
-\begin{tabularx}{\linewidth}{X|X}
+\begin{tabularx}{\textwidth}[!htbp]{X|l}
  \textbf{showExpr} & Result \\
  \hline
    Mul (Add (Cst 2) (Cst 3)) (Cst 4) & OK \\
@@ -73,26 +77,306 @@ But we did test it via the `onlineta` which tests already lots of cases.
     \hline
     Cst (-3) & OK \\
     \hline
-    Add (Cst (-3)) (Cst (-4)) & OK\\
+    Add (Cst (-3)) (Cst (-4)) & OK \\
     \hline
-    Mul (Cst (-3)) (Cst (-4)) & OK\\
+    Mul (Cst (-3)) (Cst (-4)) & OK \\
     \hline
     Pow (Cst (-3)) (Cst (-4)) & OK \\
+     \hline
 \end{tabularx}
-\end{table}
 
 
-\begin{table}[htbp]
-\begin{tabularx}{\linewidth}{X|X}
+\begin{tabularx}{\linewidth}[!htbp]{X|l}
  \textbf{evalSimple} & Result \\
  \hline
-
+    Cst 3 & OK \\
+    \hline
+    Cst 12345678901234567890 & OK \\
+    \hline
+    Add (Cst 3) (Cst 5) & OK \\
+    \hline
+    Sub (Cst 3) (Cst 5) & OK \\
+    \hline
+    Mul (Cst 3) (Cst 5) & OK \\
+    \hline
+    Mul (Cst 1234567890) (Cst 1234567890)& OK \\
+    \hline
+    Div (Cst 12) (Cst 3) & OK \\
+    \hline
+    Div (Cst (-12)) (Cst 3) & OK \\
+    \hline
+    Div (Cst 10) (Cst 3) & OK \\
+    \hline
+    Div (Cst (-10)) (Cst 3) & OK \\
+    \hline
+    Div (Cst 10) (Cst (-3)) & OK \\
+    \hline
+    Div (Cst (-10)) (Cst (-3)) & OK \\
+    \hline
+    Pow (Cst 3) (Cst 5) & OK \\
+    \hline
+    Pow (Cst (-3)) (Cst 5) & OK \\
+    \hline
+    Pow (Cst (-3)) (Cst 0) & OK \\
+    \hline
+    Pow (Cst 0) (Cst 0) & OK \\
+    \hline
+    *Div (Cst 4) (Cst 0) & OK \\
+    \hline
+    *Pow (Cst 4) (Cst (-1)) & OK \\
+    \hline
+    Mul (Add (Cst 2) (Cst 3)) (Cst 4) & OK \\
+    \hline
+    Pow (Cst 2) (Mul (Cst 3) (Cst 4)) & OK \\
+    \hline
+    *Mul (Cst 0) (Div (Cst 0) (Cst 0)) & OK \\
+    \hline
+    *Pow (Pow (Cst 2) (Cst (-1))) (Cst 0) & OK \\
+     \hline
 \end{tabularx}
-\end{table}
 
+
+\begin{tabularx}{\linewidth}[!htbp]{X|l}
+ \textbf{extendEnv} & Result \\
+ \hline
+    (extendEnv "x" 5 initEnv) "x" & OK \\
+    \hline
+    (extendEnv "x" 5 initEnv) "y" & OK \\
+    \hline
+    (extendEnv "x" 5 (extendEnv "y" 6 initEnv)) "x" & OK \\
+    \hline
+    (extendEnv "x" 5 (extendEnv "y" 6 initEnv)) "y" & OK \\
+    \hline
+    (extendEnv "x" 5 (extendEnv "y" 6 initEnv)) "z" & OK \\
+    \hline
+    (extendEnv "x" 5 (extendEnv "x" 6 initEnv)) "x" & OK \\
+     \hline
+\end{tabularx}
+
+
+\begin{tabularx}{\linewidth}[!htbp]{X|l}
+ \textbf{evalFull} & Result \\
+ \hline
+	Cst 3 & OK \\
+	\hline
+    Cst 12345678901234567890 & OK \\
+    \hline
+    Add (Cst 3) (Cst 5) & OK \\
+    \hline
+    Sub (Cst 3) (Cst 5) & OK \\
+    \hline
+    Mul (Cst 3) (Cst 5) & OK \\
+    \hline
+    Mul (Cst 1234567890) (Cst 1234567890) & OK \\
+    \hline
+    Div (Cst 12) (Cst 3) & OK \\
+    \hline
+    Div (Cst (-12)) (Cst 3) & OK \\
+    \hline
+    Div (Cst 10) (Cst 3) & OK \\
+    \hline
+    Div (Cst (-10)) (Cst 3) & OK \\
+    \hline
+    Div (Cst 10) (Cst (-3)) & OK \\
+    \hline
+    Div (Cst (-10)) (Cst (-3)) & OK \\
+    \hline
+    Pow (Cst 3) (Cst 5) & OK \\
+    \hline
+    Pow (Cst (-3)) (Cst 5) & OK \\
+    \hline
+    Pow (Cst (-3)) (Cst 0) & OK \\
+    \hline
+    Pow (Cst 0) (Cst 0) & OK \\
+    \hline
+    *Div (Cst 4) (Cst 0) & OK \\
+    \hline
+    *Pow (Cst 4) (Cst (-1)) & OK \\
+    \hline
+    Mul (Add (Cst 2) (Cst 3)) (Cst 4) & OK \\
+    \hline
+    Pow (Cst 2) (Mul (Cst 3) (Cst 4)) & OK \\
+    \hline
+    *Mul (Cst 0) (Div (Cst 0) (Cst 0)) & OK \\
+    \hline
+    *Pow (Pow (Cst 2) (Cst (-1))) (Cst 0)& OK \\
+    \hline
+    If (Cst 1) (Cst 4) (Cst 5) & OK \\
+    \hline
+    If (Cst (-3)) (Cst 4) (Cst 5) & OK \\
+    \hline
+    If (Sub (Cst 3) (Cst 3)) (Cst 4) (Cst 5) & OK \\
+    \hline
+    If (Cst 2) (Cst 5) (Div (Cst 7) (Cst 0)) & OK \\
+    \hline
+    If (Cst 0) (Div (Cst 7) (Cst 0)) (Cst 5) & OK \\
+    \hline
+    Var "x" & OK \\
+    \hline
+    Var "y" & OK \\
+    \hline
+    *Var "z" & OK \\
+    \hline
+    Let "z" (Add (Cst 2) (Cst 3)) (Var "z") & OK \\
+    \hline
+    Let "z" (Add (Cst 2) (Cst 3)) (Pow (Var "z") (Var "z")) & OK \\
+    \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Var "x") & OK \\
+    \hline
+    Let "x" (Add (Cst 3) (Var "x")) (Var "x") & OK \\
+    \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Var "y") & OK \\
+    \hline
+    Mul (Var "x") (Let "x" (Cst 10) (Var "x")) & OK \\
+    \hline
+    Mul (Let "x" (Cst 10) (Var "x")) (Var "x") & OK \\
+    \hline
+    *Mul (Let "z" (Cst 10) (Var "z")) (Var "z") & OK \\
+    \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Let "y" (Mul (Var "x") (Cst 2)) (Var "x")) & OK \\
+    \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Let "y" (Mul (Var "x") (Cst 2)) (Var "y")) & OK \\
+    \hline
+    Let "x" (Let "y" (Cst 3) (Sub (Var "x") (Var "y"))) (Mul (Var "x") (Var "y")) & OK \\
+    \hline
+    Sum "x" (Sub (Cst 3) (Cst 2)) (Add (Cst 3) (Cst 2)) (Var "x") & OK \\
+    \hline
+    Sum "x" (Cst 1) (Cst 5) (Pow (Var "x") (Cst 2)) & OK \\
+    \hline
+    Sum "x" (Cst 10) (Add (Cst 5) (Cst 5)) (Mul (Cst 3) (Var "x")) & OK \\
+    \hline
+    Sum "x" (Cst 11) (Add (Cst 5) (Cst 5)) (Var "x") & OK \\
+    \hline
+    Sum "x" (Cst 12) (Add (Cst 5) (Cst 5)) (Div (Var "x") (Cst 0)) & OK \\
+    \hline
+    Sum "x" (Cst 123456789012345) (Cst 0) (Cst 1) & OK \\
+    \hline
+    Sum "x" (Cst 1) (Var "x") (Let "x" (Add (Var "x") (Cst 1)) (Var "x")) & OK \\
+    \hline
+    Sum "x" (Cst 1) (Var "x") (Sum "x" (Var "x") (Cst 10) (Var "x")) & OK \\
+    \hline
+    *Add (Var "b1") (Var "b2") & OK \\
+    \hline
+    *If (Var "b1") (Var "b2") (Var "b3") & OK \\
+    \hline
+    *Sum "x" (Var "b1") (Var "b2") (Var "b3") & OK \\
+    \hline
+    *Mul (Div (Cst 3) (Cst 0)) (Pow (Cst 4) (Cst (-1))) & OK \\
+     \hline
+\end{tabularx}
+
+\begin{tabularx}{\linewidth}[!htbp]{X|l}
+ \textbf{evalErr} & Result \\
+ \hline
+	Cst 3 & OK \\
+	 \hline
+    Cst 12345678901234567890 & OK \\
+     \hline
+    Add (Cst 3) (Cst 5) & OK \\
+     \hline
+    Sub (Cst 3) (Cst 5) & OK \\
+     \hline
+    Mul (Cst 3) (Cst 5) & OK \\
+     \hline
+    Mul (Cst 1234567890) (Cst 1234567890) & OK \\
+     \hline
+    Div (Cst 12) (Cst 3) & OK \\
+     \hline
+    Div (Cst (-12)) (Cst 3) & OK \\
+     \hline
+    Div (Cst 10) (Cst 3) & OK \\
+     \hline
+    Div (Cst (-10)) (Cst 3) & OK \\
+     \hline
+    Div (Cst 10) (Cst (-3)) & OK \\
+     \hline
+    Div (Cst (-10)) (Cst (-3)) & OK \\
+     \hline
+    Pow (Cst 3) (Cst 5) & OK \\
+     \hline
+    Pow (Cst (-3)) (Cst 5) & OK \\
+     \hline
+    Pow (Cst (-3)) (Cst 0) & OK \\
+     \hline
+    Pow (Cst 0) (Cst 0) & OK \\
+     \hline
+    Div (Cst 4) (Cst 0) & OK \\
+     \hline
+    Pow (Cst 4) (Cst (-1)) & OK \\
+     \hline
+    Mul (Add (Cst 2) (Cst 3)) (Cst 4) & OK \\
+     \hline
+    Pow (Cst 2) (Mul (Cst 3) (Cst 4)) & OK \\
+     \hline
+    Mul (Cst 0) (Div (Cst 0) (Cst 0)) & OK \\
+     \hline
+    Pow (Pow (Cst 2) (Cst (-1))) (Cst 0) & OK \\
+     \hline
+    If (Cst 1) (Cst 4) (Cst 5) & OK \\
+     \hline
+    If (Cst (-3)) (Cst 4) (Cst 5) & OK \\
+     \hline
+    If (Sub (Cst 3) (Cst 3)) (Cst 4) (Cst 5) & OK \\
+     \hline
+    If (Cst 2) (Cst 5) (Div (Cst 7) (Cst 0)) & OK \\
+     \hline
+    If (Cst 0) (Div (Cst 7) (Cst 0)) (Cst 5) & OK \\
+     \hline
+    Var "x" & OK \\
+     \hline
+    Var "y" & OK \\
+     \hline
+    Var "z" & OK \\
+     \hline
+    Let "z" (Add (Cst 2) (Cst 3)) (Var "z") & OK \\
+     \hline
+    Let "z" (Add (Cst 2) (Cst 3)) (Pow (Var "z") (Var "z")) & OK \\
+     \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Var "x") & OK \\
+     \hline
+    Let "x" (Add (Cst 3) (Var "x")) (Var "x") & OK \\
+     \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Var "y") & OK \\
+     \hline
+    Mul (Var "x") (Let "x" (Cst 10) (Var "x")) & OK \\
+     \hline
+    Mul (Let "x" (Cst 10) (Var "x")) (Var "x") & OK \\
+     \hline
+    Mul (Let "z" (Cst 10) (Var "z")) (Var "z") & OK \\
+     \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Let "y" (Mul (Var "x") (Cst 2)) (Var "x")) & OK \\
+     \hline
+    Let "x" (Add (Cst 3) (Var "y")) (Let "y" (Mul (Var "x") (Cst 2)) (Var "y")) & OK \\
+     \hline
+    Let "x" (Let "y" (Cst 3) (Sub (Var "x") (Var "y"))) (Mul (Var "x") (Var "y")) & OK \\
+     \hline
+    Sum "x" (Sub (Cst 3) (Cst 2)) (Add (Cst 3) (Cst 2)) (Var "x") & OK \\
+     \hline
+    Sum "x" (Cst 1) (Cst 5) (Pow (Var "x") (Cst 2)) & OK \\
+     \hline
+    Sum "x" (Cst 10) (Add (Cst 5) (Cst 5)) (Mul (Cst 3) (Var "x")) & OK \\
+     \hline
+    Sum "x" (Cst 11) (Add (Cst 5) (Cst 5)) (Var "x") & OK \\
+     \hline
+    Sum "x" (Cst 12) (Add (Cst 5) (Cst 5)) (Div (Var "x") (Cst 0)) & OK \\
+     \hline
+    Sum "x" (Cst 123456789012345) (Cst 0) (Cst 1) & OK \\
+     \hline
+    Sum "x" (Cst 1) (Var "x") (Let "x" (Add (Var "x") (Cst 1)) (Var "x")) & OK \\
+     \hline
+    Sum "x" (Cst 1) (Var "x") (Sum "x" (Var "x") (Cst 10) (Var "x")) & OK \\
+     \hline
+    Add (Var "b1") (Var "b2") & OK \\
+     \hline
+    If (Var "b1") (Var "b2") (Var "b3") & OK \\
+     \hline
+    Sum "x" (Var "b1") (Var "b2") (Var "b3") & OK \\
+     \hline
+    Mul (Div (Cst 3) (Cst 0)) (Pow (Cst 4) (Cst (-1))) & OK \\
+     \hline
+\end{tabularx}
 
 \appendix
-
 \section{Code Listing}
 
 \inputminted{haskell}{src/Arithmetic.hs}
