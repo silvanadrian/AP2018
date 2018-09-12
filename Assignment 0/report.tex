@@ -1,5 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage[english, science, large]{ku-frontpage}
+\usepackage{tabularx}
 \usepackage{minted}
 \setminted[haskell]{
 frame=lines,
@@ -17,15 +18,78 @@ breaklines}
 \title{Haskell intro}
 \subtitle{Assignement0}
 
-\author{Kai Arne Schroeder Myklebust, Silvan Robert Adrian}
+\author{Kai Arne S. Myklebust, Silvan Adrian}
 \date{Handed in: \today}
 	
 \maketitle
 \tableofcontents
 
 \section{Design/Implementation}
+We always tried to move as much code as possible to own functions that the code doesn't get too unreadable.
+For Example the function `showExpr` would have had too much duplicated code which we then refactored out.
+Also the function `summ` is a good example for making it more readable by moving the functionality out of `evalFull` and only call the function from there.
+This also helps with reusability overall in the code in case one of the functions can be used many times (like `summ` in `evalFull` and `evalError`).
+
+We also tried to use as much as possible out of the standard library for \textbf{Either} like `isRight` otherwise we would have had to implement it ourselves (or end up doing something totally different). For `fromRight` we decided to implement it ourselves as `fromRight'` in which we don't have to pass any default value and return an error in case it's not a `Right Either`.
+
+Overall we tried to keep it as simple as possible and declutter code wherever it was possible.
+
 
 \section{Code Assessment}
+
+By moving some functionality into own functions we do believe we increased the maintainability at least in some parts, especially when you don't have to change the code in many places.
+
+We also try to handle all kind of edge cases as good as possible that the code should be able to handle errors or wrong inputs (either by error message or haskell error depending on which eval function).
+
+Sadly we didn't write any tests for our code, which might support our assessment even more.
+
+But we did test it via the `onlineta` which tests already lots of cases.
+
+\subsection{Test Results Online TA}
+\begin{table}[htbp]
+\begin{tabularx}{\linewidth}{X|X}
+ \textbf{showExpr} & Result \\
+ \hline
+   Mul (Add (Cst 2) (Cst 3)) (Cst 4) & OK \\
+   \hline
+    Add (Mul (Cst 2) (Cst 3)) (Cst 4) & OK \\
+    Pow (Div (Cst 2) (Cst 3)) (Sub (Cst 4) (Cst 5)) & OK \\
+    \hline
+    Add (Sub (Cst 2) (Cst 3)) (Cst 4) & OK \\
+    \hline
+    Sub (Cst 2) (Add (Cst 3) (Cst 4)) & OK \\
+    \hline
+    Div (Mul (Cst 2) (Cst 3)) (Cst 4) & OK \\
+    \hline
+    Mul (Cst 2) (Div (Cst 3) (Cst 4)) & OK \\
+    \hline
+    Pow (Cst 2) (Pow (Cst 3) (Cst 4))& OK \\
+    \hline
+    Pow (Pow (Cst 2) (Cst 3)) (Cst 4)& OK \\
+    \hline
+    Cst 0 & OK \\
+    \hline
+    Cst 3 & OK \\
+    \hline
+    Cst (-3) & OK \\
+    \hline
+    Add (Cst (-3)) (Cst (-4)) & OK\\
+    \hline
+    Mul (Cst (-3)) (Cst (-4)) & OK\\
+    \hline
+    Pow (Cst (-3)) (Cst (-4)) & OK \\
+\end{tabularx}
+\end{table}
+
+
+\begin{table}[htbp]
+\begin{tabularx}{\linewidth}{X|X}
+ \textbf{evalSimple} & Result \\
+ \hline
+
+\end{tabularx}
+\end{table}
+
 
 \appendix
 
