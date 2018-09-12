@@ -33,7 +33,7 @@ This also helps with reusability overall in the code in case one of the function
 
 Additionally we also didn't check for division by zero in `evalSimple` or `evalFull` since haskell takes care of those errors.
 
-We also tried to use as much as possible out of the standard library for \textbf{Either} like `isRight` otherwise we would have had to implement it ourselves (or end up doing something totally different). For `fromRight` we decided to implement it ourselves as `fromRight'` in which we don't have to pass any default value and return an error in case it's not a `Right Either`.
+We also tried to use as much as possible out of the standard library, for example from \textbf{Data.Either} the `isRight` function. Otherwise we would have had to implement it ourselves (or end up doing something totally different). For `fromRight` we decided to implement it ourselves as `fromRight'`, in which we don't have to pass any default value and return an error in case it's not a `Right Either`.
 
 Overall we tried to keep it as simple as possible and declutter code wherever it was possible.
 
@@ -42,11 +42,11 @@ Overall we tried to keep it as simple as possible and declutter code wherever it
 
 By moving some functionality into own functions we do believe we increased the maintainability at least in some parts, especially when you don't have to change the code in many places.
 
-We also try to handle all kind of edge cases as good as possible that the code should be able to handle errors or wrong inputs (either by error message or haskell error depending on which eval function).
+We also try to handle all kind of edge cases as good as possible that the code should be able to handle errors or wrong inputs (either by error message or haskell error depending on which eval function). As said, for example with division by zero haskell catches that error itself, so we did not find it necessary to write our own test for that.
 
-Additionally we sometimes ended up with long lines (longer then 80 Chars) which might not seem that nice sometimes but for the sake of having a one line solution it was a necessary evil.
+Additionally we sometimes ended up with long lines (longer then 80 Chars) which might not seem that nice, but for the sake of having a one line solution it was a necessary evil. Sum is the worst example in this regard, but it needs so many parameters that need to be checked so it was difficult do to it shorter.
 
-Sadly we didn't write any tests for our code, which might support our assessment even more.
+Sadly we didn't write any tests for our code, which might support our assessment even more. During writing of the code we of course tried with small different tests, but we never wrote them formally in a own test file.
 
 But we did test it via the `onlineta` which tests already lots of cases (see Appendix).
 
