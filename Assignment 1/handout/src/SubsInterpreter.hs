@@ -58,6 +58,16 @@ instance Applicative SubsM where
   pure = return
   (<*>) = ap
 
+equality:: Value -> Value -> Either Error Value
+equality (IntVal a) (IntVal b) = if (a == b) then Right TrueVal else Right FalseVal
+equality UndefinedVal UndefinedVal = Right TrueVal
+equality (StringVal a) (StringVal b) = if (a == b) then Right TrueVal else Right FalseVal
+equality TrueVal TrueVal = Right TrueVal
+equality FalseVal FalseVal = Right TrueVal
+equality (ArrayVal []) (ArrayVal []) = Right TrueVal
+equality (ArrayVal a) (ArrayVal b) = if head a == head b then equality (ArrayVal (tail a)) (ArrayVal (tail b)) else Right FalseVal
+equality _ _ = Right FalseVal
+
 mkArray :: Primitive
 mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)
 mkArray _ = Left "Array() called with wrong number or type of arguments"
