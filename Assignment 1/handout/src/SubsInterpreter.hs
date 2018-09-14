@@ -38,9 +38,9 @@ initialContext = (Map.empty, initialPEnv)
           Map.fromList [ ("===", equality)
                        , ("<", smallerThen)
                        , ("+", add)
-                       , ("*", undefined)
-                       , ("-", undefined)
-                       , ("%", undefined)
+                       , ("*", mul)
+                       , ("-", sub)
+                       , ("%", modulo)
                        , ("Array", mkArray)
                        ]
 
@@ -88,6 +88,27 @@ add2 (StringVal a) (StringVal b) = Right (StringVal(a ++ b))
 add2 (IntVal a) (StringVal b) = Right(StringVal(show a ++ b))
 add2 (StringVal a) (IntVal b) = Right(StringVal(a ++ show b))
 add2 _ _ = Left "No Int or String"
+
+mul :: Primitive
+mul a = if length a > 2 then mul2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
+
+mul2 :: Value -> Value -> Either Error Value
+mul2 (IntVal a) (IntVal b) = Right (IntVal(a*b))
+mul2 _ _ = Left "No Integer"
+
+sub :: Primitive
+sub a = if length a > 2 then sub2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
+
+sub2 :: Value -> Value -> Either Error Value
+sub2 (IntVal a) (IntVal b) = Right (IntVal(a-b))
+sub2 _ _ = Left "No Integer"
+
+modulo :: Primitive
+modulo a = if length a > 2 then mod2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
+
+mod2 :: Value -> Value -> Either Error Value
+mod2 (IntVal a) (IntVal b) = if b == 0 then Left "Division by Zero" else Right (IntVal(mod a b))
+mod2 _ _ = Left "Not integer"
 
 mkArray :: Primitive
 mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)
