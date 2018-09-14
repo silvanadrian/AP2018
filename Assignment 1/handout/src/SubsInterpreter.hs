@@ -37,7 +37,7 @@ initialContext = (Map.empty, initialPEnv)
   where initialPEnv =
           Map.fromList [ ("===", equality)
                        , ("<", smallerThen)
-                       , ("+", undefined)
+                       , ("+", add)
                        , ("*", undefined)
                        , ("-", undefined)
                        , ("%", undefined)
@@ -58,10 +58,10 @@ instance Applicative SubsM where
   pure = return
   (<*>) = ap
 
-equality:: Primitive
+equality :: Primitive
 equality a = if length a > 2 then equality2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
 
-equality2:: Value -> Value -> Either Error Value
+equality2 :: Value -> Value -> Either Error Value
 equality2 (IntVal a) (IntVal b) = if (a == b) then Right TrueVal else Right FalseVal
 equality2 UndefinedVal UndefinedVal = Right TrueVal
 equality2 (StringVal a) (StringVal b) = if (a == b) then Right TrueVal else Right FalseVal
@@ -71,12 +71,23 @@ equality2 (ArrayVal []) (ArrayVal []) = Right TrueVal
 equality2 (ArrayVal a) (ArrayVal b) = if head a == head b then equality2 (ArrayVal (tail a)) (ArrayVal (tail b)) else Right FalseVal
 equality2 _ _ = Right FalseVal
 
-smallerThen:: Primitive
+smallerThen :: Primitive
 smallerThen a = if length a > 2 then smallerThen2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
 
-smallerThen2:: Value -> Value -> Either Error Value
+smallerThen2 :: Value -> Value -> Either Error Value
 smallerThen2 (IntVal a) (IntVal b) = if (a < b) then Right TrueVal else Right FalseVal
 smallerThen2 (StringVal a) (StringVal b) = if (a < b) then Right TrueVal else Right FalseVal
+smallerThen2 _ _ = Right FalseVal
+
+add :: Primitive
+add a = if length a > 2 then add2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
+
+add2 :: Value -> Value -> Either Error Value
+add2 (IntVal a) (IntVal b) = Right (IntVal(a + b))
+add2 (StringVal a) (StringVal b) = Right (StringVal(a ++ b))
+add2 (IntVal a) (StringVal b) = Right(StringVal(show a ++ b))
+add2 (StringVal a) (IntVal b) = Right(StringVal(a ++ show b))
+add2 _ _ = Left "No Int or String"
 
 mkArray :: Primitive
 mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)
