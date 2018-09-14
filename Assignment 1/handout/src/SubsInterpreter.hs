@@ -35,8 +35,8 @@ type Context = (Env, PEnv)
 initialContext :: Context
 initialContext = (Map.empty, initialPEnv)
   where initialPEnv =
-          Map.fromList [ ("===", undefined)
-                       , ("<", undefined)
+          Map.fromList [ ("===", equality)
+                       , ("<", smallerThen)
                        , ("+", undefined)
                        , ("*", undefined)
                        , ("-", undefined)
@@ -58,15 +58,25 @@ instance Applicative SubsM where
   pure = return
   (<*>) = ap
 
-equality:: Value -> Value -> Either Error Value
-equality (IntVal a) (IntVal b) = if (a == b) then Right TrueVal else Right FalseVal
-equality UndefinedVal UndefinedVal = Right TrueVal
-equality (StringVal a) (StringVal b) = if (a == b) then Right TrueVal else Right FalseVal
-equality TrueVal TrueVal = Right TrueVal
-equality FalseVal FalseVal = Right TrueVal
-equality (ArrayVal []) (ArrayVal []) = Right TrueVal
-equality (ArrayVal a) (ArrayVal b) = if head a == head b then equality (ArrayVal (tail a)) (ArrayVal (tail b)) else Right FalseVal
-equality _ _ = Right FalseVal
+equality:: Primitive
+equality a = if length a > 2 then equality2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
+
+equality2:: Value -> Value -> Either Error Value
+equality2 (IntVal a) (IntVal b) = if (a == b) then Right TrueVal else Right FalseVal
+equality2 UndefinedVal UndefinedVal = Right TrueVal
+equality2 (StringVal a) (StringVal b) = if (a == b) then Right TrueVal else Right FalseVal
+equality2 TrueVal TrueVal = Right TrueVal
+equality2 FalseVal FalseVal = Right TrueVal
+equality2 (ArrayVal []) (ArrayVal []) = Right TrueVal
+equality2 (ArrayVal a) (ArrayVal b) = if head a == head b then equality2 (ArrayVal (tail a)) (ArrayVal (tail b)) else Right FalseVal
+equality2 _ _ = Right FalseVal
+
+smallerThen:: Primitive
+smallerThen a = if length a > 2 then smallerThen2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
+
+smallerThen2:: Value -> Value -> Either Error Value
+smallerThen2 (IntVal a) (IntVal b) = if (a < b) then Right TrueVal else Right FalseVal
+smallerThen2 (StringVal a) (StringVal b) = if (a < b) then Right TrueVal else Right FalseVal
 
 mkArray :: Primitive
 mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)
