@@ -1,0 +1,16 @@
+name:                arithmetic
+
+dependencies:
+- base
+- tasty
+- tasty-hunit
+
+library:
+  source-dirs: src
+
+tests:
+  arithmetic-test:
+    main:                Spec.hs
+    source-dirs:         test
+    dependencies:
+    - arithmetic
