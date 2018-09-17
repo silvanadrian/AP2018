@@ -47,9 +47,9 @@ initialContext = (Map.empty, initialPEnv)
 newtype SubsM a = SubsM {runSubsM :: Context -> Either Error (a, Env)}
 
 instance Monad SubsM where
-  return x = undefined 
+  return x = SubsM $ \(e, _) -> Right (x,e)
   m >>= f = undefined
-  fail s = undefined
+  fail s = SubsM $ \_ -> Left s
 
 -- You may modify these if you want, but it shouldn't be necessary
 instance Functor SubsM where
