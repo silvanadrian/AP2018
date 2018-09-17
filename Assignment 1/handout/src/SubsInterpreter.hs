@@ -48,7 +48,7 @@ newtype SubsM a = SubsM {runSubsM :: Context -> Either Error (a, Env)}
 
 instance Monad SubsM where
   return x = SubsM $ \(e, _) -> Right (x,e)
-  m >>= f = undefined
+  m >>= f = SubsM $ \c@(e, p) -> runSubsM m c >>= \(x, e') -> runSubsM (f x) (e', p)
   fail s = SubsM $ \_ -> Left s
 
 -- You may modify these if you want, but it shouldn't be necessary
@@ -115,19 +115,29 @@ mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)
 mkArray _ = Left "Array() called with wrong number or type of arguments"
 
 modifyEnv :: (Env -> Env) -> SubsM ()
-modifyEnv f = undefined
+modifyEnv f = SubsM $ \(e, _) -> Right ((),(f e))
 
 putVar :: Ident -> Value -> SubsM ()
-putVar name val = undefined
+putVar name val = modifyEnv $ \e -> Map.insert name val e
 
 getVar :: Ident -> SubsM Value
-getVar name = undefined
+getVar name = SubsM $ \(e, _) -> case Map.lookup name e of
+                                    Just v -> Right (v, e)
+                                    Nothing -> Left "No value found in map"
 
 getFunction :: FunName -> SubsM Primitive
-getFunction name = undefined
+getFunction name = SubsM $ \(e, p) -> case Map.lookup name p of
+                                        Just v -> Right (v, e)
+                                        Nothing -> Left "No value found in map"
 
 evalExpr :: Expr -> SubsM Value
-evalExpr expr = undefined
+evalExpr Undefined = return UndefinedVal
+evalExpr TrueConst = return TrueVal
+evalExpr FalseConst = return FalseVal
+evalExpr (Number a) = return $ IntVal a
+evalExpr (String a) = return $ StringVal a
+evalExpr (Array []) = return (ArrayVal [])
+evalExpr (Var a) = getVar a
 
 runExpr :: Expr -> Either Error Value
 runExpr expr = undefined
