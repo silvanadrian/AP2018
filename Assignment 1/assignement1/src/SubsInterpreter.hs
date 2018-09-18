@@ -2,6 +2,12 @@ module SubsInterpreter
        (
          Value(..)
        , runExpr
+       , equality
+       , smallerThen
+       , add
+       , mul
+       , sub
+       , modulo
        -- You may include additional exports here, if you want to
        -- write unit tests for them.
        )
@@ -59,56 +65,46 @@ instance Applicative SubsM where
   (<*>) = ap
 
 equality :: Primitive
-equality a = if length a > 2 then equality2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
-
-equality2 :: Value -> Value -> Either Error Value
-equality2 (IntVal a) (IntVal b) = if (a == b) then Right TrueVal else Right FalseVal
-equality2 UndefinedVal UndefinedVal = Right TrueVal
-equality2 (StringVal a) (StringVal b) = if (a == b) then Right TrueVal else Right FalseVal
-equality2 TrueVal TrueVal = Right TrueVal
-equality2 FalseVal FalseVal = Right TrueVal
-equality2 (ArrayVal []) (ArrayVal []) = Right TrueVal
-equality2 (ArrayVal a) (ArrayVal b) = if head a == head b then equality2 (ArrayVal (tail a)) (ArrayVal (tail b)) else Right FalseVal
-equality2 _ _ = Right FalseVal
+equality [IntVal a, IntVal b] = if (a == b) then Right TrueVal else Right FalseVal
+equality [UndefinedVal, UndefinedVal] = Right TrueVal
+equality [StringVal a, StringVal b] = if (a == b) then Right TrueVal else Right FalseVal
+equality [TrueVal, TrueVal] = Right TrueVal
+equality [FalseVal, FalseVal] = Right TrueVal
+equality [ArrayVal [], ArrayVal []] = Right TrueVal
+equality [ArrayVal [], ArrayVal a] = Right FalseVal
+equality [ArrayVal a, ArrayVal []] = Right FalseVal
+equality [ArrayVal a, ArrayVal b] = if head a == head b then equality [(ArrayVal (tail a)), (ArrayVal (tail b))] else Right FalseVal
+equality [_, _] = Right FalseVal
+equality _ = Left "Wrong amount of Arguments"
 
 smallerThen :: Primitive
-smallerThen a = if length a > 2 then smallerThen2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
-
-smallerThen2 :: Value -> Value -> Either Error Value
-smallerThen2 (IntVal a) (IntVal b) = if (a < b) then Right TrueVal else Right FalseVal
-smallerThen2 (StringVal a) (StringVal b) = if (a < b) then Right TrueVal else Right FalseVal
-smallerThen2 _ _ = Right FalseVal
+smallerThen [IntVal a, IntVal b] = if (a < b) then Right TrueVal else Right FalseVal
+smallerThen [StringVal a, StringVal b] = if (a < b) then Right TrueVal else Right FalseVal
+smallerThen [_, _] = Right FalseVal
+smallerThen _ = Left "Wrong amount of Arguments"
 
 add :: Primitive
-add a = if length a > 2 then add2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
-
-add2 :: Value -> Value -> Either Error Value
-add2 (IntVal a) (IntVal b) = Right (IntVal(a + b))
-add2 (StringVal a) (StringVal b) = Right (StringVal(a ++ b))
-add2 (IntVal a) (StringVal b) = Right(StringVal(show a ++ b))
-add2 (StringVal a) (IntVal b) = Right(StringVal(a ++ show b))
-add2 _ _ = Left "No Int or String"
+add [IntVal a, IntVal b] = Right (IntVal(a + b))
+add [StringVal a, StringVal b] = Right (StringVal(a ++ b))
+add [IntVal a, StringVal b] = Right(StringVal(show a ++ b))
+add [StringVal a, IntVal b] = Right(StringVal(a ++ show b))
+add [_, _] = Left "No Int or String"
+add _ = Left "Wrong amount of Arguments"
 
 mul :: Primitive
-mul a = if length a > 2 then mul2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
-
-mul2 :: Value -> Value -> Either Error Value
-mul2 (IntVal a) (IntVal b) = Right (IntVal(a*b))
-mul2 _ _ = Left "No Integer"
+mul [IntVal a, IntVal b] = Right (IntVal(a*b))
+mul [_, _] = Left "No Integer"
+mul _ = Left "Wrong amount of Arguments"
 
 sub :: Primitive
-sub a = if length a > 2 then sub2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
-
-sub2 :: Value -> Value -> Either Error Value
-sub2 (IntVal a) (IntVal b) = Right (IntVal(a-b))
-sub2 _ _ = Left "No Integer"
+sub [IntVal a, IntVal b] = Right (IntVal(a-b))
+sub [_, _] = Left "No Integer"
+sub _ = Left "Wrong amount of Arguments"
 
 modulo :: Primitive
-modulo a = if length a > 2 then mod2 (head a) (head (tail a)) else Left "List is smaller or bigger then 2"
-
-mod2 :: Value -> Value -> Either Error Value
-mod2 (IntVal a) (IntVal b) = if b == 0 then Left "Division by Zero" else Right (IntVal(mod a b))
-mod2 _ _ = Left "Not integer"
+modulo [IntVal a, IntVal b] = if b == 0 then Left "Division by Zero" else Right (IntVal(mod a b))
+modulo [_, _] = Left "No Integer"
+modulo _ = Left "Wrong amount of Arguments"
 
 mkArray :: Primitive
 mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)
