@@ -48,7 +48,7 @@ newtype SubsM a = SubsM {runSubsM :: Context -> Either Error (a, Env)}
 
 instance Monad SubsM where
   return x = SubsM $ \(e, _) -> Right (x,e)
-  m >>= f = SubsM $ \c@(e, p) -> runSubsM m c >>= \(x, e') -> runSubsM (f x) (e', p)
+  m >>= f = SubsM $ \c@(_, p) -> runSubsM m c >>= \(x, e') -> runSubsM (f x) (e', p)
   fail s = SubsM $ \_ -> Left s
 
 -- You may modify these if you want, but it shouldn't be necessary
@@ -136,8 +136,52 @@ evalExpr TrueConst = return TrueVal
 evalExpr FalseConst = return FalseVal
 evalExpr (Number a) = return $ IntVal a
 evalExpr (String a) = return $ StringVal a
-evalExpr (Array []) = return (ArrayVal [])
 evalExpr (Var a) = getVar a
+evalExpr (Array []) = return (ArrayVal [])
+evalExpr (Array (a:ax)) = do
+  a <- evalExpr a
+  ArrayVal ax <- evalExpr(Array ax)
+  return (ArrayVal (a:ax))
+evalExpr (Compr (ACBody e)) = do
+  a <- evalExpr e
+  return (ArrayVal [a])
+
+evalExpr (Compr (ACFor i e c)) = do
+  a <- evalExpr e
+  case a of
+    ArrayVal [] -> return a
+    ArrayVal (x:xa) ->
+    StringVal xs ->
+    _ -> fail "FOR needs an array or string"
+
+-- (Compr
+--   (ACFor "y" (Var "xs")
+--     (ACBody (String "a"))))
+
+evalExpr (Compr (ACIf e c)) = do
+  a <- evalExpr e
+  case a of
+    TrueVal -> evalExpr (Compr c)
+    FalseVal -> return (ArrayVal [])
+    _ -> fail "IF needs a boolean"
+
+evalExpr (Call a b) = do
+  f <- getFunction a
+  ArrayVal bv <- evalExpr (Array b)
+  case (f bv) of 
+    Right r -> return r
+    Left l -> fail l
+
+evalExpr (Assign a b) = do
+  v <- evalExpr b
+  putVar a v
+  return v
+
+evalExpr (Comma a b) = do
+  evalExpr a
+  evalExpr b
 
 runExpr :: Expr -> Either Error Value
-runExpr expr = undefined
+runExpr expr = case (runSubsM (evalExpr expr)) initialContext of
+                  Right r -> Right (fst r)
+                  Left l -> Left l

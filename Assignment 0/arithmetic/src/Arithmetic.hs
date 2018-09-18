@@ -115,11 +115,12 @@ evalErr (Let a b c) r = if isRight (evalErr b r)
                           then evalErr c (extendEnv a (fromRight'(evalErr b r)) r)
                           else evalErr b r
 
-evalErr (Sum v a b c) r = if isRight (evalErr a r)
-                            then if isRight (evalErr b r)
-                              then Right (summ v (fromRight' (evalErr a r)) (fromRight' (evalErr b r)) c (extendEnv v (fromRight'(evalErr a r)) r))
-                              else evalErr b r
-                            else evalErr a r
+evalErr (Sum v a b c) r = 
+  if isRight (evalErr a r)
+    then if isRight (evalErr b r)
+      then Right (summ v (fromRight' (evalErr a r)) (fromRight' (evalErr b r)) c (extendEnv v (fromRight'(evalErr a r)) r))
+      else evalErr b r
+    else evalErr a r
 
 evalEither :: Either a b -> (b -> b -> b) -> Either a b -> Either a b
 evalEither a b c = if isRight a
@@ -128,13 +129,13 @@ evalEither a b c = if isRight a
                           else c
                         else a
 
--- use own implementation of fromRight from Data.Either but not returning a 
+-- use own implementation of fromRight from Data.Either but not returning a
 -- default value, which is not needed for the assignment
 fromRight' :: Either a b -> b
 fromRight' (Right c) = c
-fromRight' _ = error "No value"                              
-  
--- optional parts (if not attempted, leave them unmodified)                    
+fromRight' _ = error "No value"
+
+-- optional parts (if not attempted, leave them unmodified)
 
 showCompact :: Exp -> String
 showCompact = undefined
