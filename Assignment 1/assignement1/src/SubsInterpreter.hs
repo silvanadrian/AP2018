@@ -8,6 +8,7 @@ module SubsInterpreter
        , mul
        , sub
        , modulo
+       , mkArray
        -- You may include additional exports here, if you want to
        -- write unit tests for them.
        )
@@ -75,13 +76,13 @@ equality [ArrayVal [], ArrayVal a] = Right FalseVal
 equality [ArrayVal a, ArrayVal []] = Right FalseVal
 equality [ArrayVal a, ArrayVal b] = if head a == head b then equality [(ArrayVal (tail a)), (ArrayVal (tail b))] else Right FalseVal
 equality [_, _] = Right FalseVal
-equality _ = Left "Wrong amount of Arguments"
+equality _ = Left "Wrong number of arguments"
 
 smallerThen :: Primitive
 smallerThen [IntVal a, IntVal b] = if (a < b) then Right TrueVal else Right FalseVal
 smallerThen [StringVal a, StringVal b] = if (a < b) then Right TrueVal else Right FalseVal
 smallerThen [_, _] = Right FalseVal
-smallerThen _ = Left "Wrong amount of Arguments"
+smallerThen _ = Left "Wrong number of arguments"
 
 add :: Primitive
 add [IntVal a, IntVal b] = Right (IntVal(a + b))
@@ -89,22 +90,22 @@ add [StringVal a, StringVal b] = Right (StringVal(a ++ b))
 add [IntVal a, StringVal b] = Right(StringVal(show a ++ b))
 add [StringVal a, IntVal b] = Right(StringVal(a ++ show b))
 add [_, _] = Left "No Int or String"
-add _ = Left "Wrong amount of Arguments"
+add _ = Left "Wrong number of arguments"
 
 mul :: Primitive
 mul [IntVal a, IntVal b] = Right (IntVal(a*b))
 mul [_, _] = Left "No Integer"
-mul _ = Left "Wrong amount of Arguments"
+mul _ = Left "Wrong number of arguments"
 
 sub :: Primitive
 sub [IntVal a, IntVal b] = Right (IntVal(a-b))
 sub [_, _] = Left "No Integer"
-sub _ = Left "Wrong amount of Arguments"
+sub _ = Left "Wrong number of arguments"
 
 modulo :: Primitive
 modulo [IntVal a, IntVal b] = if b == 0 then Left "Division by Zero" else Right (IntVal(mod a b))
 modulo [_, _] = Left "No Integer"
-modulo _ = Left "Wrong amount of Arguments"
+modulo _ = Left "Wrong number of arguments"
 
 mkArray :: Primitive
 mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)

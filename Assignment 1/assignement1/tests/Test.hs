@@ -3,6 +3,7 @@ import Test.Tasty.HUnit
 
 import SubsInterpreter
 import SubsAst
+import qualified Data.Map as Map
 
 main = defaultMain tests
 
@@ -13,7 +14,8 @@ tests = testGroup "tests" [
       addTests,
       mulTests,
       subTests,
-      moduloTests
+      moduloTests,
+      arrayTests
     ]
 
 
@@ -34,7 +36,7 @@ equalityTests = testGroup "equalityTests"
     testCase "neq ArrayVal size" $ equality [ArrayVal [IntVal 1, IntVal 2], ArrayVal [IntVal 1,IntVal 2, IntVal 3]] @?= Right FalseVal,
     testCase "neq ArrayVal empty" $ equality [ArrayVal [], ArrayVal [IntVal 1,IntVal 2, IntVal 3]] @?= Right FalseVal,
     testCase "wildcard FalseVal" $ equality [FalseVal,IntVal 1] @?= Right FalseVal,
-    testCase "wildcard arguments" $ equality [FalseVal] @?= Left "Wrong amount of Arguments"
+    testCase "wildcard arguments" $ equality [FalseVal] @?= Left "Wrong number of arguments"
   ]
 
 smallerThenTests :: TestTree
@@ -45,7 +47,7 @@ smallerThenTests = testGroup "smallerThenTests"
    testCase "smaller StringVal true" $ smallerThen [StringVal "abc", StringVal "abz"] @?= Right TrueVal,
    testCase "smaller StringVal false" $ smallerThen [StringVal "abzz", StringVal "abz"] @?= Right FalseVal,
    testCase "wildcard FalseVal" $ smallerThen [FalseVal,IntVal 1] @?= Right FalseVal,
-   testCase "wildcard arguments" $ equality [FalseVal] @?= Left "Wrong amount of Arguments"
+   testCase "wildcard arguments" $ equality [FalseVal] @?= Left "Wrong number of arguments"
  ]
 
 addTests :: TestTree
@@ -56,7 +58,7 @@ addTests = testGroup "addTests"
    testCase "StringVal/IntVal add" $ add [StringVal "a", IntVal 1] @=? Right (StringVal "a1"),
    testCase "StringVal/IntVal add" $ add [IntVal 1, StringVal "a"] @=? Right (StringVal "1a"),
    testCase "wildcard add" $ add  [FalseVal, TrueVal] @=? Left "No Int or String",
-   testCase "wildcard arguments" $ add [FalseVal] @?= Left "Wrong amount of Arguments"
+   testCase "wildcard arguments" $ add [FalseVal] @?= Left "Wrong number of arguments"
  ]
 
 mulTests :: TestTree
@@ -64,7 +66,7 @@ mulTests = testGroup "mulTests"
   [
     testCase "IntVal mul" $ mul [IntVal 1, IntVal 3] @=? Right (IntVal 3),
     testCase "wildcard mul" $ mul [FalseVal, TrueVal] @?= Left "No Integer",
-    testCase "wildcard arguments" $ mul [FalseVal] @?= Left "Wrong amount of Arguments"
+    testCase "wildcard arguments" $ mul [FalseVal] @?= Left "Wrong number of arguments"
   ]
 
 subTests :: TestTree
@@ -72,7 +74,7 @@ subTests = testGroup "subTests"
   [
     testCase "IntVal sub" $ sub [IntVal 3, IntVal 4] @=? Right (IntVal (-1)),
     testCase "wildcar sub" $ sub [FalseVal, TrueVal] @=? Left "No Integer",
-    testCase "wildcar arguments" $ sub [FalseVal] @=? Left "Wrong amount of Arguments"
+    testCase "wildcar arguments" $ sub [FalseVal] @=? Left "Wrong number of arguments"
   ]
 
 moduloTests :: TestTree
@@ -81,8 +83,15 @@ moduloTests = testGroup "moduleTests"
     testCase "IntVal modulo" $ modulo [IntVal 4, IntVal 2] @?= Right (IntVal 0),
     testCase "IntVal div 0" $ modulo [IntVal 4, IntVal 0] @?= Left "Division by Zero",
     testCase "wildcar modulo" $ modulo [FalseVal, TrueVal] @=? Left "No Integer",
-    testCase "wildcar arguments" $ modulo [FalseVal] @=? Left "Wrong amount of Arguments"
+    testCase "wildcar arguments" $ modulo [FalseVal] @=? Left "Wrong number of arguments"
   ]
+
+arrayTests :: TestTree
+arrayTests = testGroup "arrayTests"
+ [
+   testCase "mkArray n size" $ mkArray [IntVal 4] @?= Right (ArrayVal [UndefinedVal,UndefinedVal,UndefinedVal,UndefinedVal]),
+   testCase "mkArray empty" $ mkArray [] @?= Left "Array() called with wrong number or type of arguments"
+ ] 
 
 runExprTests :: TestTree
 runExprTests = testGroup "runExprTests"
