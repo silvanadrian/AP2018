@@ -15,7 +15,8 @@ tests = testGroup "tests" [
       mulTests,
       subTests,
       moduloTests,
-      arrayTests
+      arrayTests,
+      runExprTests
     ]
 
 
@@ -95,10 +96,45 @@ arrayTests = testGroup "arrayTests"
 
 runExprTests :: TestTree
 runExprTests = testGroup "runExprTests"
-  [ testCase "intro" $
-      runExpr introExpr @?= Right introResult
-  , testCase "scope" $
-      runExpr scopeExpr @?= Right scopeResult
+  [ 
+    testCase "undefined" $ runExpr (Undefined) @=? Right UndefinedVal,
+    testCase "True" $ runExpr (TrueConst) @=? Right TrueVal,
+    testCase "False" $ runExpr (FalseConst) @=? Right FalseVal,
+    testCase "Number" $ runExpr (Number 1) @=? Right (IntVal 1),
+    testCase "String" $ runExpr (String "123") @=? Right (StringVal "123"),
+    testCase "Var" $ runExpr (Var "xs") @=? Left ("No value found in map"),
+    testCase "Assign" $ runExpr (Assign "xs" (Number 1)) @=? Right (IntVal 1),
+    testCase "Array empty" $ runExpr (Array []) @=? Right (ArrayVal []),
+    testCase "Array" $ runExpr (Array [Number 1, Number 1]) @=? Right (ArrayVal [IntVal 1,IntVal 1]),
+    testCase "Call equals False" $ runExpr (Call "===" [(Number 1),(Number 2)]) @=? Right FalseVal,
+    testCase "Call equals True" $ runExpr (Call "===" [(Number 1),(Number 1)]) @=? Right TrueVal,
+    testCase "Call equals false types" $ runExpr (Call "===" [(Number 1),(TrueConst)]) @=? Right FalseVal,
+    testCase "Call equals arguments" $ runExpr (Call "===" [(Number 1)]) @=? Left "Wrong number of arguments",
+    testCase "Call smallerThen False" $ runExpr (Call "<" [(String "abz"),(String "abc")]) @=? Right FalseVal,
+    testCase "Call smallerThen True" $ runExpr (Call "<" [(String "abc"),(String "abz")]) @=? Right TrueVal,
+    testCase "Call smallerThen false types" $ runExpr (Call "<" [(String "abc"),(Number 1)]) @=? Right FalseVal,
+    testCase "Call smallerThen false types" $ runExpr (Call "<" [(String "abc")]) @=? Left "Wrong number of arguments",
+    testCase "Call add Number" $ runExpr (Call "+" [(Number 1),(Number 2)]) @=? Right (IntVal 3),
+    testCase "Call add String" $ runExpr (Call "+" [(String "a"),(String "b")]) @=? Right (StringVal "ab"),
+    testCase "Call add Number/String" $ runExpr (Call "+" [(Number 1),(String "2")]) @=? Right (StringVal "12"),
+    testCase "Call add types" $ runExpr (Call "+" [(FalseConst),(TrueConst)]) @=? Left "No Int or String",
+    testCase "Call add arguments" $ runExpr (Call "+" [(FalseConst)]) @=? Left "Wrong number of arguments",
+    testCase "Call mul numbers" $ runExpr (Call "*" [(Number 1), (Number 3)]) @=? Right (IntVal 3),
+    testCase "Call mul types" $ runExpr (Call "*" [(Number 1), (String "3")]) @=? Left "No Integer",
+    testCase "Call mul arguments" $ runExpr (Call "*" [(Number 1)]) @=? Left "Wrong number of arguments",
+    testCase "Call sub numbers" $ runExpr (Call "-" [(Number 3),(Number 2)]) @=? Right (IntVal 1),
+    testCase "Call sub types" $ runExpr (Call "-" [(Number 3),FalseConst]) @=? Left "No Integer",
+    testCase "Call sub arguments" $ runExpr (Call "-" [(Number 3)]) @=? Left "Wrong number of arguments",
+    testCase "Call modulo" $ runExpr (Call "%" [(Number 3),(Number 2)]) @=? Right (IntVal 1),
+    testCase "Call modulo div 0" $ runExpr (Call "%" [(Number 3),(Number 0)]) @=? Left "Division by Zero",
+    testCase "Call modulo types" $ runExpr (Call "%" [(Number 3),(String "1")]) @=? Left "No Integer",
+    testCase "Call modulo arguments" $ runExpr (Call "%" [(Number 3)]) @=? Left "Wrong number of arguments",
+    testCase "Call array" $ runExpr (Call "Array" [Number 3]) @=? Right (ArrayVal [UndefinedVal,UndefinedVal,UndefinedVal]),
+    testCase "Call array arguments" $  runExpr (Call "Array" []) @=? Left "Array() called with wrong number or type of arguments",
+    testCase "Comma" $ runExpr(Comma (Number 1) (Number 2)) @=? Right (IntVal 2)
+
+    -- testCase "intro" $ runExpr introExpr @?= Right introResult, 
+    -- testCase "scope" $ runExpr scopeExpr @?= Right scopeResult
   ]
 
 introExpr :: Expr

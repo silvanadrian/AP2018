@@ -143,13 +143,13 @@ evalExpr (Compr (ACBody e)) = do
   a <- evalExpr e
   return (ArrayVal [a])
 
-evalExpr (Compr (ACFor i e c)) = do
-  a <- evalExpr e
-  case a of
-    ArrayVal [] -> return a
-    ArrayVal (x:xa) ->
-    StringVal xs ->
-    _ -> fail "FOR needs an array or string"
+-- evalExpr (Compr (ACFor i e c)) = do
+--   a <- evalExpr e
+--   case a of
+--     ArrayVal [] -> return a
+--     ArrayVal (x:xa) ->
+--     StringVal xs ->
+--     _ -> fail "FOR needs an array or string"
 
 -- (Compr
 --   (ACFor "y" (Var "xs")
