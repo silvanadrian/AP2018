@@ -72,8 +72,8 @@ equality [StringVal a, StringVal b] = if (a == b) then Right TrueVal else Right 
 equality [TrueVal, TrueVal] = Right TrueVal
 equality [FalseVal, FalseVal] = Right TrueVal
 equality [ArrayVal [], ArrayVal []] = Right TrueVal
-equality [ArrayVal [], ArrayVal a] = Right FalseVal
-equality [ArrayVal a, ArrayVal []] = Right FalseVal
+equality [ArrayVal [], ArrayVal _] = Right FalseVal
+equality [ArrayVal _, ArrayVal []] = Right FalseVal
 equality [ArrayVal a, ArrayVal b] = if head a == head b then equality [(ArrayVal (tail a)), (ArrayVal (tail b))] else Right FalseVal
 equality [_, _] = Right FalseVal
 equality _ = Left "Wrong number of arguments"
@@ -175,7 +175,7 @@ evalExpr (Assign a b) = do
   return v
 
 evalExpr (Comma a b) = do
-  evalExpr a
+  _ <- evalExpr a
   evalExpr b
 
 runExpr :: Expr -> Either Error Value
