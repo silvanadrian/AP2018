@@ -35,12 +35,12 @@ Additionally we also didn't check for division by zero in `evalSimple` or `evalF
 
 We also tried to use as much as possible out of the standard library, for example from \textbf{Data.Either} the `isRight` function. Otherwise we would have had to implement it ourselves (or end up doing something totally different). For `fromRight` we decided to implement it ourselves as `fromRight'`, in which we don't have to pass any default value and return an error in case it's not a `Right Either`.
 
-Overall we tried to keep it as simple as possible and declutter code wherever it was possible.
+Overall we tried to keep it as simple as possible and declutter code wherever it was possible. \newline
 
 \textbf{Edit 17. September:}
-
 We had to use eager evaluation for the single case of Negative Power Exponent since otherwise Haskell tries to be intelligent and just ignores part of the expression.
 That's why we use `seq`to be sure that `Pow` gets evaluated rightly.
+The rest is lazy evaluated.
 
 
 
@@ -52,10 +52,8 @@ We also try to handle all kind of edge cases as good as possible that the code s
 
 Additionally we sometimes ended up with long lines (longer then 80 Chars) which might not seem that nice, but for the sake of having a one line solution it was a necessary evil. Sum is the worst example in this regard, but it needs so many parameters that need to be checked so it was difficult do to it shorter.
 
-Sadly we didn't write any tests for our code, which might support our assessment even more. During writing of the code we of course tried with small different tests, but we never wrote them formally in a own test file.
 
-But we did test it via the `onlineta` which tests already lots of cases (see Appendix).
-
+We also wrote some tests which can be run by `stack test`, which test the basic functionality to our best knowledge.
 
 \appendix
 \section{Code Listing}
