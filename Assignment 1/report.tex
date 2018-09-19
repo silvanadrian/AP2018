@@ -27,15 +27,19 @@ breaklines}
 
 \section{Design/Implementation}
 
-Overall in this assignment our goal was to not use helper functions, where not especially needed. This to make readability easier and making the code less complex since many of our helper functions where unnecesarry.
-But, we started of by making a helper function for each arithmetic operation from "initial context". This was to get the first and second element from the list. After a while we got really annoyd doing that and found out that you can just get the first and second element by changing to [] list-brackets.
-
-In evalExpr we used the do notation to
+Overall in this assignment our goal was to not use helper functions, where not especially needed. This to make readability easier and making the code less complex since many of our helper functions from the previous assignment where unnecesarry.
+But, we started of by making a helper function for each arithmetic operation from "initial context". This was to get the first and second element from the list. After a while we got really anoyd doing that and found out that you can just get the first and second element by changing to [] list-brackets.
+We used head and tail in equality, but onlineTA says that we sould not use them. We check for empty lists and no list so we feel confident that we check for possible errors from head and tail.
+In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement. 
 
 \section{Code Assessment}
+According to our own tests and onlineTa, everything except array compression works according to the test cases.
+Array compression was the hard part and is only partly working. ACFor only works for arrays. If you have a String it sees the string as one element and not multiple characters. ACFor does not work with nested for's. We cannot see why nested for does not work. We use putVar and know that this works. So the ACFor can see the variable, but one possible problem could be that only the body should see the variable but now the whole ACFor sees the new variable.
+In ACIf we have the problem when the if clause evaluates to false it has to return a ´Value´, but the assignment says it should return nothing. IF ACIf is inside a ACFor our solution does not work, but if ACIf is alone it works.
 
-equality mit Arrays Edge Case war nicht abgedeckt ([] a, a [])
+We ran our own tests that shows these failures. These can be run by ´stack test´. 
 
+One place where our test cases found a failure that we were able to fix was in equality and having arrays of different length. We choose to then say it should return a FalseVal incase different array lengths.
 
 \appendix
 \section{Code Listing}
