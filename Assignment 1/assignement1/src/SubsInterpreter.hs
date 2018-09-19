@@ -139,10 +139,7 @@ evalExpr (Array (a:ax)) = do
   a <- evalExpr a
   ArrayVal ax <- evalExpr(Array ax)
   return (ArrayVal (a:ax))
-evalExpr (Compr (ACBody e)) = do
-  a <- evalExpr e
-  return (ArrayVal [a])
-
+evalExpr (Compr (ACBody e)) = evalExpr e
 evalExpr (Compr (ACFor i e c)) = do
   a <- evalExpr e
   case a of
@@ -151,7 +148,7 @@ evalExpr (Compr (ACFor i e c)) = do
         -- putVar i x
         evalExpr(Compr c)) xa
       return (ArrayVal val)
-    -- StringVal xs -> return (StringVal (map (\x -> evalExpr(Compr c)) xs))
+--    StringVal xs -> return (StringVal (map (\x -> evalExpr(Compr c)) xs))
     _ -> fail "FOR needs an array or string"
 
 -- (Compr
