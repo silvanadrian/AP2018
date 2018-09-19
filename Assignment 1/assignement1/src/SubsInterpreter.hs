@@ -143,17 +143,24 @@ evalExpr (Compr (ACBody e)) = do
   a <- evalExpr e
   return (ArrayVal [a])
 
--- evalExpr (Compr (ACFor i e c)) = do
---   a <- evalExpr e
---   case a of
---     ArrayVal [] -> return a
---     ArrayVal (x:xa) ->
---     StringVal xs ->
---     _ -> fail "FOR needs an array or string"
+evalExpr (Compr (ACFor i e c)) = do
+  a <- evalExpr e
+  case a of
+    ArrayVal xa -> do
+      val <- mapM (\x -> do
+        -- putVar i x
+        evalExpr(Compr c)) xa
+      return (ArrayVal val)
+    -- StringVal xs -> return (StringVal (map (\x -> evalExpr(Compr c)) xs))
+    _ -> fail "FOR needs an array or string"
 
 -- (Compr
 --   (ACFor "y" (Var "xs")
 --     (ACBody (String "a"))))
+
+-- runExpr (Compr (ACFor "y" (Array [Number 0, Number 1, Number 2, Number 3]) (ACBody (String "a"))))
+-- Right [ArrayVal [StringVal "a"],[StringVal "a"],[StringVal "a"],[StringVal "a"]]
+-- runExpr (Compr (ACFor "y" (String "abc") (ACBody (String "a"))))
 
 evalExpr (Compr (ACIf e c)) = do
   a <- evalExpr e
