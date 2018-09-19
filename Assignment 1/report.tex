@@ -17,7 +17,7 @@ breaklines}
 \begin{document}
 
 \title{Haskell intro}
-\subtitle{Assignement0}
+\subtitle{Assignment1}
 
 \author{Kai Arne S. Myklebust, Silvan Adrian}
 \date{Handed in: \today}
@@ -27,24 +27,24 @@ breaklines}
 
 \section{Design/Implementation}
 
-Overall in this assignment our goal was to not use helper functions, where not especially needed. This to make readability easier and making the code less complex since many of our helper functions from the previous assignment where unnecesarry.
-But, we started of by making a helper function for each arithmetic operation from "initial context". This was to get the first and second element from the list. After a while we got really anoyd doing that and found out that you can just get the first and second element by changing to [] list-brackets.
-We used head and tail in equality, but onlineTA says that we sould not use them. We check for empty lists and no list so we feel confident that we check for possible errors from head and tail.
+Overall in this assignment our goal was to not use helper functions, where not specificaly needed. This to make readability easier and making the code less complex since many of our helper functions from the previous assignment were unnecessary.
+We started by making a helper function for each arithmetic operation from "initial context". This was to get the first and second element from the list. After a while we got really annoyed doing that and found out that you can just get the first and second element by changing to [] list-brackets.
+We used head and tail in equality, but onlineTA says that we should not use them. We check for empty lists and a list of different length, so we check for possible errors which we found while testing from head and tail.
 In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement. 
 
 \section{Code Assessment}
-According to our own tests and onlineTa, everything except array compression works according to the test cases.
-Array compression was the hard part and is only partly working. ACFor only works for arrays. If you have a String it sees the string as one element and not multiple characters. ACFor does not work with nested for's. We cannot see why nested for does not work. We use putVar and know that this works. So the ACFor can see the variable, but one possible problem could be that only the body should see the variable but now the whole ACFor sees the new variable.
-In ACIf we have the problem when the if clause evaluates to false it has to return a ´Value´, but the assignment says it should return nothing. IF ACIf is inside a ACFor our solution does not work, but if ACIf is alone it works.
+According to our own tests and onlineTa, everything except array compression works.
+Array compression was the hardest part and is only partly working. ACFor only works for arrays with numbers. If you have a String it sees the string as only one element and not multiple characters. ACFor does not work with nested for's. We weren't able to make nested for's working. We use putVar and know that it works. So the ACFor can see the variable, but one problem is that only the body should see the variable but now the whole ACFor sees the new variable.
+In ACIf we have the problem when the if clause evaluates to false it has to return a ´Value´, but the assignment says it should return nothing. IF ACIf is inside a ACFor our solution does not work, but if there's a single ACIf then it works.
 
-We ran our own tests that shows these failures. These can be run by ´stack test´. 
+We ran our own tests to show these failures. These can be run by ´stack test´ (the last 6 out of 84 tests fail, which we also described in the assessment above). 
 
-One place where our test cases found a failure that we were able to fix was in equality and having arrays of different length. We choose to then say it should return a FalseVal incase different array lengths.
+One place where our test cases were able to help us find errors was in equality and having arrays of different lengths. We fixed it by checking for empty arrays and for different array lengths then  we return a FalseVal.
 
 \appendix
 \section{Code Listing}
 
-\inputminted{haskell}{assignement1/src/SubsInterpreter.hs}
+\inputminted{haskell}{handin/src/SubsInterpreter.hs}
 
 
 \end{document}}
