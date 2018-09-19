@@ -2,7 +2,7 @@
 .DS_Store
 
 # Minted
-_minted-report
+_minted-report*
 
 *.aux
 *.glo
