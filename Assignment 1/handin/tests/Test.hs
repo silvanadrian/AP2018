@@ -131,10 +131,22 @@ runExprTests = testGroup "runExprTests"
     testCase "Call modulo arguments" $ runExpr (Call "%" [(Number 3)]) @?= Left "Wrong number of arguments",
     testCase "Call array" $ runExpr (Call "Array" [Number 3]) @?= Right (ArrayVal [UndefinedVal,UndefinedVal,UndefinedVal]),
     testCase "Call array arguments" $  runExpr (Call "Array" []) @?= Left "Array() called with wrong number or type of arguments",
-    testCase "Comma" $ runExpr(Comma (Number 1) (Number 2)) @?= Right (IntVal 2)
-
-    -- testCase "intro" $ runExpr introExpr @?= Right introResult, 
-    -- testCase "scope" $ runExpr scopeExpr @?= Right scopeResult
+    testCase "Comma" $ runExpr(Comma (Number 1) (Number 2)) @?= Right (IntVal 2),
+    testCase "ACBody" $ runExpr(Compr(ACBody (Number 1))) @?= Right (IntVal 1),
+    testCase "ACIf false" $ runExpr(Compr (ACIf (Call "===" [Call "%" [Number 1, Number 2], Number 0]) (ACBody (Number 2)))) @?= Right (ArrayVal []),
+    testCase "ACIf true" $ runExpr(Compr (ACIf (Call "===" [Call "%" [Number 2, Number 2], Number 0]) (ACBody (Number 2)))) @?= Right (IntVal 2),
+    testCase "ACFor number" $ runExpr (Compr (ACFor "y" (Array [Number 0, Number 1, Number 2, Number 3]) (ACBody (String "a")))) @?= Right (ArrayVal [StringVal "a",StringVal "a",StringVal "a",StringVal "a"]),
+    -- Not Working Test Cases
+    -- ACFor for StringVal not Working yet
+    testCase "ACFor StringVal" $ runExpr (Compr (ACFor "y" (String "bcd") (ACBody (String "aggg")))) @?= Right (ArrayVal [StringVal "aggg", StringVal "aggg", StringVal "aggg"]),
+    -- ACIf not working in a ACFor yet
+    testCase "ACIf in ACFor" $ runExpr(Compr (ACFor "x" (Array[Number 1, Number 2]) (ACIf (Call "===" [Call "%" [Number 1, Number 2], Number 0]) (ACBody (Number 3))))) @?= Right (ArrayVal []),
+    -- Nested ACFor not working yet
+    testCase "ACFor nested" $ runExpr(Comma (Assign "xs" (Array [Number 1,Number 2,Number 3])) (Compr (ACFor "x" (Var "xs") (ACFor "y" (Var "xs") (ACBody (Number 0)))))) @?= Right (ArrayVal [IntVal 0,IntVal 0,IntVal 0,IntVal 0,IntVal 0,IntVal 0,IntVal 0,IntVal 0,IntVal 0]),
+    -- Comprehension Scope not working yet
+    testCase "Compr scope" $ runExpr(  Comma (Assign "x" (Number 1)) (Comma (Compr (ACFor "x" (Array [Number 2,Number 3]) (ACBody (Var "x")))) (Var "x"))) @=? Right (IntVal 1),
+    testCase "intro" $ runExpr introExpr @?= Right introResult,
+    testCase "scope" $ runExpr scopeExpr @?= Right scopeResult
   ]
 
 introExpr :: Expr
@@ -160,16 +172,15 @@ introExpr =
                              (ACFor "y" (Call "Array" [Number 20])
                                (ACBody (Assign "i"
                                          (Call "+" [Var "i", Number 1]))))))))
-           (Array [Var "xs", Var "squares", Var "evens",
-                   Var "many_a", Var "hundred"])))))
+           (Array [Var "xs", Var "squares", Var "evens",Var "many_a", Var "hundred"])))))
 
 introResult :: Value
 introResult = ArrayVal
   [ ArrayVal [IntVal n | n <- [0..9]]
-  , undefined
-  , undefined
-  , undefined
-  , undefined
+  , ArrayVal [IntVal (n * n) | n <- [0..9] ]
+  , ArrayVal [IntVal n | n <- [0,2..8] ]
+  , ArrayVal (replicate 100 (StringVal "a"))
+  , ArrayVal $ map IntVal $ [1 .. 100]
   ]
 
 scopeExpr :: Expr
@@ -180,5 +191,4 @@ scopeExpr =
      (Array [Var "x", Var "y"]))
 
 scopeResult :: Value
-scopeResult = ArrayVal
-  undefined
+scopeResult = ArrayVal [ IntVal 42, ArrayVal [ StringVal "a", StringVal "b", StringVal "c" ]]

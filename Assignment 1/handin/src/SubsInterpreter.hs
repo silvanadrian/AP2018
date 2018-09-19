@@ -68,19 +68,21 @@ instance Applicative SubsM where
 equality :: Primitive
 equality [IntVal a, IntVal b] = if (a == b) then Right TrueVal else Right FalseVal
 equality [UndefinedVal, UndefinedVal] = Right TrueVal
-equality [StringVal a, StringVal b] = if (a == b) then Right TrueVal else Right FalseVal
+equality [StringVal a, StringVal b] = if a == b then Right TrueVal else Right FalseVal
 equality [TrueVal, TrueVal] = Right TrueVal
 equality [FalseVal, FalseVal] = Right TrueVal
 equality [ArrayVal [], ArrayVal []] = Right TrueVal
 equality [ArrayVal [], ArrayVal _] = Right FalseVal
 equality [ArrayVal _, ArrayVal []] = Right FalseVal
-equality [ArrayVal a, ArrayVal b] = if head a == head b then equality [(ArrayVal (tail a)), (ArrayVal (tail b))] else Right FalseVal
+equality [ArrayVal a, ArrayVal b] = if head a == head b 
+  then equality [ArrayVal (tail a), ArrayVal (tail b)] 
+  else Right FalseVal
 equality [_, _] = Right FalseVal
 equality _ = Left "Wrong number of arguments"
 
 smallerThen :: Primitive
-smallerThen [IntVal a, IntVal b] = if (a < b) then Right TrueVal else Right FalseVal
-smallerThen [StringVal a, StringVal b] = if (a < b) then Right TrueVal else Right FalseVal
+smallerThen [IntVal a, IntVal b] = if a < b then Right TrueVal else Right FalseVal
+smallerThen [StringVal a, StringVal b] = if a < b then Right TrueVal else Right FalseVal
 smallerThen [_, _] = Right FalseVal
 smallerThen _ = Left "Wrong number of arguments"
 
@@ -112,7 +114,7 @@ mkArray [IntVal n] | n >= 0 = return $ ArrayVal (replicate n UndefinedVal)
 mkArray _ = Left "Array() called with wrong number or type of arguments"
 
 modifyEnv :: (Env -> Env) -> SubsM ()
-modifyEnv f = SubsM $ \(e, _) -> Right ((),(f e))
+modifyEnv f = SubsM $ \(e, _) -> Right ((), f e)
 
 putVar :: Ident -> Value -> SubsM ()
 putVar name val = modifyEnv $ \e -> Map.insert name val e
@@ -149,17 +151,9 @@ evalExpr (Compr (ACFor i e c)) = do
         evalExpr(Compr c)) xa
       return (ArrayVal val)
     StringVal xs -> do
-      (StringVal s) <- (\x -> evalExpr(Compr c)) (xs)
+      (StringVal s) <- (\_ -> evalExpr(Compr c)) xs
       return (StringVal s)
     _ -> fail "FOR needs an array or string"
-
--- (Compr
---   (ACFor "y" (Var "xs")
---     (ACBody (String "a"))))
-
--- runExpr (Compr (ACFor "y" (Array [Number 0, Number 1, Number 2, Number 3]) (ACBody (String "a"))))
--- Right [ArrayVal [StringVal "a"],[StringVal "a"],[StringVal "a"],[StringVal "a"]]
--- runExpr (Compr (ACFor "y" (String "bcd") (ACBody (String "aggg"))))
 
 evalExpr (Compr (ACIf e c)) = do
   a <- evalExpr e
@@ -171,7 +165,7 @@ evalExpr (Compr (ACIf e c)) = do
 evalExpr (Call a b) = do
   f <- getFunction a
   ArrayVal bv <- evalExpr (Array b)
-  case (f bv) of 
+  case f bv of 
     Right r -> return r
     Left l -> fail l
 
@@ -185,6 +179,6 @@ evalExpr (Comma a b) = do
   evalExpr b
 
 runExpr :: Expr -> Either Error Value
-runExpr expr = case (runSubsM (evalExpr expr)) initialContext of
+runExpr expr = case runSubsM (evalExpr expr) initialContext of
                   Right r -> Right (fst r)
                   Left l -> Left l
