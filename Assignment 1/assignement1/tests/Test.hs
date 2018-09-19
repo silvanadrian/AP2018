@@ -131,9 +131,13 @@ runExprTests = testGroup "runExprTests"
     testCase "Call modulo arguments" $ runExpr (Call "%" [(Number 3)]) @?= Left "Wrong number of arguments",
     testCase "Call array" $ runExpr (Call "Array" [Number 3]) @?= Right (ArrayVal [UndefinedVal,UndefinedVal,UndefinedVal]),
     testCase "Call array arguments" $  runExpr (Call "Array" []) @?= Left "Array() called with wrong number or type of arguments",
-    testCase "Comma" $ runExpr(Comma (Number 1) (Number 2)) @?= Right (IntVal 2)
+    testCase "Comma" $ runExpr(Comma (Number 1) (Number 2)) @?= Right (IntVal 2),
+    testCase "ACBody" $ runExpr(Compr(ACBody (Number 1))) @?= Right (IntVal 1),
+    testCase "ACIf false" $ runExpr(Compr (ACIf (Call "===" [Call "%" [Number 1, Number 2], Number 0]) (ACBody (Number 2)))) @?= Right (ArrayVal []),
+    testCase "ACIf true" $ runExpr(Compr (ACIf (Call "===" [Call "%" [Number 2, Number 2], Number 0]) (ACBody (Number 2)))) @?= Right (IntVal 2),
+    testCase "ACFor number" $ runExpr (Compr (ACFor "y" (Array [Number 0, Number 1, Number 2, Number 3]) (ACBody (String "a")))) @?= Right (ArrayVal [StringVal "a",StringVal "a",StringVal "a",StringVal "a"]),
 
-    -- testCase "intro" $ runExpr introExpr @?= Right introResult, 
+    testCase "intro" $ runExpr introExpr @?= Right introResult
     -- testCase "scope" $ runExpr scopeExpr @?= Right scopeResult
   ]
 
@@ -150,10 +154,10 @@ introExpr =
                        (ACIf (Call "===" [Call "%" [Var "x", Number 2],
                                           Number 0])
                          (ACBody (Var "x"))))))
-       (Comma (Assign "many_a"
-                (Compr (ACFor "x" (Var "xs")
-                         (ACFor "y" (Var "xs")
-                           (ACBody (String "a"))))))
+       --(Comma (Assign "many_a"
+       --         (Compr (ACFor "x" (Var "xs")
+       --                  (ACFor "y" (Var "xs")
+       --                    (ACBody (String "a"))))))
          (Comma (Assign "hundred"
                   (Compr (ACFor "i" (Array [Number 0])
                            (ACFor "x" (Call "Array" [Number 5])
@@ -161,15 +165,16 @@ introExpr =
                                (ACBody (Assign "i"
                                          (Call "+" [Var "i", Number 1]))))))))
            (Array [Var "xs", Var "squares", Var "evens",
-                   Var "many_a", Var "hundred"])))))
+                   -- Var "many_a", 
+                   Var "hundred"]))))
 
 introResult :: Value
 introResult = ArrayVal
   [ ArrayVal [IntVal n | n <- [0..9]]
-  , undefined
-  , undefined
-  , undefined
-  , undefined
+  , ArrayVal [IntVal (n * n) | n <- [0..9] ]
+  , ArrayVal [IntVal n | n <- [0,2..8] ]
+  -- , ArrayVal (replicate 100 (StringVal "a"))
+  , ArrayVal $ map IntVal $ [1 .. 100]
   ]
 
 scopeExpr :: Expr
