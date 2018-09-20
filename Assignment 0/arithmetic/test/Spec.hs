@@ -23,7 +23,7 @@ showExpTest = testGroup "showExp"
     testCase "Show Pow" $ showExp(Pow (Cst 2) (Cst 3)) @?= "(2^3)",
     testCase "Show Div" $ showExp(Div (Cst 3) (Cst 4)) @?= "(3 / 4)",
     testCase "Show Sub" $ showExp(Sub (Cst 2) (Cst 4)) @?= "(2 - 4)",
-    testCase "Show Mixture" $ showExp(Pow (Div (Cst 2) (Cst 3)) (Sub (Cst 4) (Cst 3))) @?= "((2 / 3)^(4 - 3))" 
+    testCase "Show Mixture" $ showExp(Pow (Div (Cst 2) (Cst 3)) (Sub (Cst 4) (Cst 3))) @?= "((2 / 3)^(4 - 3))"
   ]
 
 evalSimpleTest :: TestTree
@@ -34,7 +34,9 @@ evalSimpleTest = testGroup "evalSimple"
     testCase "Mul" $ evalSimple(Mul (Cst 3) (Cst 5)) @?= 15,
     testCase "Div" $ evalSimple(Div (Cst 12) (Cst 3)) @?= 4,
     testCase "Pow" $ evalSimple(Pow (Cst 2) (Cst 3)) @?= 8,
-    testCase "Mixture" $ evalSimple(Pow (Div (Cst 2) (Cst 3)) (Sub (Cst 4) (Cst 3))) @?= 0
+    testCase "Mixture" $ evalSimple(Pow (Div (Cst 2) (Cst 3)) (Sub (Cst 4) (Cst 3))) @?= 0,
+    testCase "Div by Zero fails" $ evalSimple(Div (Cst 2) (Cst 0)) @?= 0,
+    testCase "Pow negative fails" $ evalSimple(Pow (Cst 2) (Cst (-1))) @?= 0
   ]
 
 extendEnvTest :: TestTree
@@ -54,7 +56,9 @@ evalFullTest = testGroup "fullEval"
     testCase "Div" $ evalFull(Div (Cst 12) (Cst 3)) initEnv @?= 4,
     testCase "Pow" $ evalFull(Pow (Cst 2) (Cst 3)) initEnv @?= 8,
     testCase "Let" $ evalFull(Let "z" (Add (Cst 2) (Cst 3)) (Var "z")) initEnv @?= 5,
-    testCase "Sum" $ evalFull(Sum "x" (Cst 10) (Add (Cst 5) (Cst 5)) (Mul (Cst 3) (Var "x"))) initEnv @?= 30
+    testCase "Sum" $ evalFull(Sum "x" (Cst 10) (Add (Cst 5) (Cst 5)) (Mul (Cst 3) (Var "x"))) initEnv @?= 30,
+    testCase "Div by Zero fails" $ evalFull(Div (Cst 2) (Cst 0)) initEnv @?= 0,
+    testCase "Pow negative fails" $ evalFull(Pow (Cst 2) (Cst (-1))) initEnv @?= 0
   ]
 
 evalErrTest :: TestTree
