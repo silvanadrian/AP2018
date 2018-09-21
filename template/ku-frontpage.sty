@@ -104,8 +104,8 @@
 
   \def\maketitle{
     \thispagestyle{empty}
-    \AddToShipoutPicture*{\put( 0, -35){\includegraphics*{logos/\KUFACULTY-logo}}}
-    \AddToShipoutPicture*{\put(-8,   8){\includegraphics*{logos/\KUFACULTY-\KULANG}}}
+    \AddToShipoutPicture*{\put( 0, -35){\includegraphics*{../template/logos//\KUFACULTY-logo}}}
+    \AddToShipoutPicture*{\put(-8,   8){\includegraphics*{../template/logos//\KUFACULTY-\KULANG}}}
 
     \ifthenelse{\equal{\FRONTPAGEIMAGE}{...}}{}{
       \AddToShipoutPicture*{
@@ -140,7 +140,7 @@
 \if@kusmall
   \def\maketitle{
     \thispagestyle{plain}
-    \AddToShipoutPicture*{\put(35,  83){\includegraphics*[scale=0.88]{logos/\KUFACULTY-logo}}}
+    \AddToShipoutPicture*{\put(35,  83){\includegraphics*[scale=0.88]{../template/logos//\KUFACULTY-logo}}}
     \AddToShipoutPicture*{\put(79, 755){\large{\textbf{\TITLE}}}}
     \AddToShipoutPicture*{\put(79, 733){\SUBTITLE}}
     \AddToShipoutPicture*{\put(79, 715){\small{\emph{\AUTHOR}}}}
@@ -154,7 +154,7 @@
 \if@kularge
   \def\maketitle{
     \thispagestyle{plain}
-    \AddToShipoutPicture*{\put(-220, -310){\includegraphics*[scale=1.4]{logos/\KUFACULTY-logo}}}
+    \AddToShipoutPicture*{\put(-220, -310){\includegraphics*[scale=1.4]{../template/logos//\KUFACULTY-logo}}}
     \AddToShipoutPicture*{\put(79, 755){\LARGE{\textbf{\TITLE}}}}
     \AddToShipoutPicture*{\put(79, 723){\Large{\SUBTITLE}}}
     \AddToShipoutPicture*{\put(79, 695){\normalsize{\emph{\AUTHOR}}}}
