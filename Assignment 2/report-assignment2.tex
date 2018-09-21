@@ -1,0 +1,54 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[english, science, large]{../ku-frontpage}
+\usepackage{tabularx}
+\usepackage{ltablex}
+\usepackage{minted}
+\setminted[haskell]{
+frame=lines,
+framesep=2mm,
+baselinestretch=1.1,
+fontsize=\footnotesize,
+linenos,
+breaklines}
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0},
+}
+\begin{document}
+
+\title{Haskell intro}
+\subtitle{Assignment1}
+
+\author{Kai Arne S. Myklebust, Silvan Adrian}
+\date{Handed in: \today}
+	
+\maketitle
+\tableofcontents
+
+\section{Design/Implementation}
+
+Overall in this assignment our goal was to not use helper functions, where not specificaly needed. This to make readability easier and making the code less complex since many of our helper functions from the previous assignment were unnecessary.
+We started by making a helper function for each arithmetic operation from "initial context". This was to get the first and second element from the list. After a while we got really annoyed doing that and found out that you can just get the first and second element by changing to [] list-brackets.
+We used head and tail in equality, but onlineTA says that we should not use them. We check for empty lists and a list of different length, so we check for possible errors which we found while testing from head and tail.
+In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement.
+
+We worked our way through the monads, by doing many tests and figuring out what return values where needed. In addition we read a lot of monad introductions and articles and used more than 20 hours just to partly understand this assignment. Also we got help in another TA class.
+In the monad return we knew that we needed the right value of SubsM and worked our way from there. In fail we knew that we needed the left side value (Error).
+For the bind we used the slides from the lecture and the haskell wiki to work our way forward. Underway we did testing to see that we got the right return values.
+
+\section{Code Assessment}
+According to our own tests and onlineTa, everything except array compression works.
+Array compression was the hardest part and is only partly working. ACFor only works for arrays with numbers. If you have a String it sees the string as only one element and not multiple characters. ACFor does not work with nested for's. We weren't able to make nested for's working. We use putVar and know that it works. So the ACFor can see the variable, but one problem is that only the body should see the variable but now the whole ACFor sees the new variable.
+In ACIf we have the problem when the if clause evaluates to false it has to return a ´Value´, but the assignment says it should return nothing. IF ACIf is inside a ACFor our solution does not work, but if there's a single ACIf then it works.
+
+We ran our own tests to show these failures. These can be run by ´stack test´ (the last 6 out of 84 tests fail, which we also described in the assessment above). 
+
+One place where our test cases were able to help us find errors was in equality and having arrays of different lengths. We fixed it by checking for empty arrays and for different array lengths then  we return a FalseVal.
+
+\appendix
+\section{Code Listing}
+
+\inputminted{haskell}{handin/src/SubsInterpreter.hs}
+
+
+\end{document}}
