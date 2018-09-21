@@ -1,6 +1,8 @@
 # Mac Ignore DS_Store Files
 .DS_Store
 
+.idea/
+
 # Minted
 _minted-report*
 
