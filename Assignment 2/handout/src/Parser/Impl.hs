@@ -16,7 +16,7 @@ parseString s = parse (do
 posNumber :: Parser Expr
 posNumber = do
   n <- many1 digit
-  if length (show n) <= 8 then return $ Number $ read n else fail "Int too long"
+  if length n <= 8 then return $ Number $ read n else fail "Int too long"
 
 parseNumber :: Parser Expr
 parseNumber = do
@@ -24,7 +24,10 @@ parseNumber = do
                 return res
 
 parseExpr :: Parser Expr
-parseExpr = choice [ parseNumber, parseStr, parseTrue, parseFalse, parseIdent ]
+parseExpr = choice [ parseCons ]
+
+parseCons :: Parser Expr
+parseCons = choice [ parseNumber, parseStr, parseTrue, parseFalse, parseUndefined, parseIdent ]
 
 parseIdent :: Parser Expr
 parseIdent = do
@@ -48,4 +51,10 @@ parseFalse :: Parser Expr
 parseFalse = do
                _ <- string "false"
                return FalseConst
+
+parseUndefined :: Parser Expr
+parseUndefined = do
+                    _ <- string "undefined"
+                    return Undefined
+
 
