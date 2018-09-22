@@ -18,13 +18,20 @@ posNumber = do
   n <- many1 digit
   if length n <= 8 then return $ Number $ read n else fail "Int too long"
 
+
+negNumber :: Parser Expr
+negNumber = do
+  _ <- char '-'
+  n <- many1 digit
+  if length n <= 8 then return $ Number $ read n * (-1) else fail "Int too long"
+
 parseNumber :: Parser Expr
 parseNumber = do
-                res <- posNumber
+                res <- posNumber <|> negNumber
                 return res
 
 parseExpr :: Parser Expr
-parseExpr = choice [ parseCons ]
+parseExpr = choice [ parseCompare, parseCons ]
 
 parseCons :: Parser Expr
 parseCons = choice [ parseNumber, parseStr, parseTrue, parseFalse, parseUndefined, parseIdent ]
@@ -58,3 +65,42 @@ parseUndefined = do
                     return Undefined
 
 
+parseCompare :: Parser Expr
+parseCompare = do
+                   addProd <- parseAdditon
+                   parseCompare' addProd
+
+
+parseCompare' :: Expr -> Parser Expr
+parseCompare' input = (do
+                       compOp <- string "===" <|> string "<"
+                       cons <- parseCons
+                       parseCompare' $ Call compOp [input, cons])
+                       <|> return input
+
+parseAdditon :: Parser Expr
+parseAdditon = do
+                  prod <- parseProd
+                  parseAdditon' prod
+
+
+parseAdditon' :: Expr -> Parser Expr
+parseAdditon' input = (do
+                         addOp <- char '+' <|> char '-'
+                         cons <- parseCons
+                         parseAdditon' $ Call [addOp] [input, cons])
+                         <|> return input
+
+
+parseProd :: Parser Expr
+parseProd = do
+                cons <- parseCons
+                parseProd' cons
+
+
+parseProd' :: Expr -> Parser Expr
+parseProd' input = (do
+                       prodOp <- char '*' <|> char '%'
+                       cons <- parseCons
+                       parseProd' $ Call [prodOp] [input, cons])
+                       <|> return input
