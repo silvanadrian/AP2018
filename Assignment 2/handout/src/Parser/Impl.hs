@@ -16,14 +16,14 @@ parseString s = parse (do
 posNumber :: Parser Expr
 posNumber = do
   n <- many1 digit
-  if length n <= 8 then return $ Number $ read n else fail "Int too long"
+  if length n <= 8 then return $ Number $ read n else fail "Number too long"
 
 
 negNumber :: Parser Expr
 negNumber = do
-  _ <- char '-'
+  m <- string "-"
   n <- many1 digit
-  if length n <= 8 then return $ Number $ read n * (-1) else fail "Int too long"
+  if length n <= 8 then return $ Number $ read (m ++ n) else fail "Number too long"
 
 parseNumber :: Parser Expr
 parseNumber = do
