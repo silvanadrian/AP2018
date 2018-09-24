@@ -17,7 +17,7 @@ breaklines}
 \begin{document}
 
 \title{Haskell intro}
-\subtitle{Assignement0}
+\subtitle{Assignement 0}
 
 \author{Kai Arne S. Myklebust, Silvan Adrian}
 \date{Handed in: \today}
@@ -37,9 +37,8 @@ We also tried to use as much as possible out of the standard library, for exampl
 
 Overall we tried to keep it as simple as possible and declutter code wherever it was possible. \newline
 
-\textbf{Edit 17. September:}
 We had to use eager evaluation for the single case of Negative Power Exponent since otherwise Haskell tries to be intelligent and just ignores part of the expression.
-That's why we use `seq`to be sure that `Pow` gets evaluated rightly.
+That's why we use `seq` to be sure that `Pow` evaluates one expression after the other.
 The rest is lazy evaluated.
 
 
@@ -55,10 +54,16 @@ Additionally we sometimes ended up with long lines (longer then 80 Chars) which 
 
 We also wrote some tests which can be run by `stack test`, which test the basic functionality to our best knowledge.
 
+We do have have 4 failing Test which should fail, those test the edge cases for division by zero and negative power exponent for `evalSimple` and `evalFull` which throw an exception.
+
 \appendix
 \section{Code Listing}
 
-\inputminted{haskell}{src/Arithmetic.hs}
+\inputminted{haskell}{arithmetic/src/Arithmetic.hs}
+
+\section{Tests Listing}
+
+\inputminted{haskell}{arithmetic/test/Spec.hs}
 
 
 \end{document}}
