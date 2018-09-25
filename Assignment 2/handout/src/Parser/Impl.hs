@@ -6,10 +6,11 @@ module Parser.Impl where
 import           SubsAst
 import           Text.Parsec
 import           Text.Parsec.String
+--import           Data.Char
 
 parseString :: String -> Either ParseError Expr
 parseString s = parse (do
-                        res <- parseExpr
+                        res <- parseLeadingWhitespace parseExpr
                         eof
                         return res) "ERROR" s
 
@@ -26,16 +27,42 @@ negNumber = do
 
 parseNumber :: Parser Expr
 parseNumber = do
-                res <- posNumber <|> negNumber
+                res <- parseWhitespace(posNumber <|> negNumber)
                 return res
 
 parseParentheses :: Parser Expr
 parseParentheses = do
-                       _ <- char '('
+                       _ <- parseWhitespace(char '(')
                        expr <- parseExpr
-                       _ <- char ')'
+                       _ <- parseWhitespace(char ')')
                        return expr
 
+parseComment :: Parser ()
+parseComment = do
+                  _ <- string "//"
+                  _ <- manyTill anyChar (newLine <|> eof)
+                  return ()
+
+--makes newline be of type ()
+newLine :: Parser ()
+newLine = do
+            _ <- newline
+            return ()
+
+parseLeadingWhitespace :: Parser a -> Parser a
+parseLeadingWhitespace par = do
+                                spaces
+                                optional parseComment
+                                spaces
+                                par
+
+parseWhitespace :: Parser a -> Parser a
+parseWhitespace par = do
+                        p <- par
+                        spaces
+                        optional parseComment
+                        spaces
+                        return p
 
 -- check for comma
 parseExpr :: Parser Expr
@@ -43,13 +70,13 @@ parseExpr = choice [ parseNotComma, parseCons ]
 
 parseNotComma :: Parser Expr
 parseNotComma = do
-                    expr1 <- parseExpr'
+                    expr1 <- parseWhitespace parseExpr'
                     parseComma expr1
 
 parseComma :: Expr -> Parser Expr
 parseComma expr1 = (do
-                _ <- char ','
-                expr2 <- parseExpr'
+                _ <- parseWhitespace(char ',')
+                expr2 <- parseWhitespace parseExpr'
                 return (Comma expr1 expr2)) <|> return expr1
 
 
@@ -75,17 +102,17 @@ parseIdent = do
 
 parseAssign :: Parser Expr
 parseAssign = do
-                Var ident <- parseIdent
-                _ <- char '='
+                Var ident <- parseWhitespace(parseIdent)
+                _ <- parseWhitespace(char '=')
                 expr1 <- parseExpr'
                 return (Assign ident expr1)
 
 parseCall :: Parser Expr
 parseCall = do
-                Var ident <- parseIdent
-                _ <- char '('
+                Var ident <- parseWhitespace(parseIdent)
+                _ <- parseWhitespace(char '(')
                 exprs <- parseExprs
-                _ <- char ')'
+                _ <- parseWhitespace(char ')')
                 return (Call ident exprs)
 
 
@@ -97,32 +124,32 @@ parseExprs = do
 
 parseCommaExprs :: Expr -> Parser [Expr]
 parseCommaExprs expr1 = do
-                            _ <- char ','
+                            _ <- parseWhitespace(char ',')
                             expr2 <- parseExprs
                             return (expr1:expr2)
                           <|> return [expr1]
 
 parseArrayStart :: Parser Expr
 parseArrayStart = do
-                    _ <- char '['
+                    _ <- parseWhitespace(char '[')
                     compr <- parseArrayFor
-                    _ <- char ']'
+                    _ <- parseWhitespace(char ']')
                     return (Compr compr)
 
 parseArrayFor :: Parser ArrayCompr
 parseArrayFor = do
-                    _ <- string "for"
-                    _ <- char '('
-                    Var ident <- parseIdent
-                    _ <- string "of"
-                    expr1 <- parseExpr'
-                    _ <- char ')'
+                    _ <- parseWhitespace(string "for")
+                    _ <- parseWhitespace(char '(')
+                    Var ident <- parseWhitespace(parseIdent)
+                    _ <- parseWhitespace(string "of")
+                    expr1 <- parseWhitespace(parseExpr')
+                    _ <- parseWhitespace(char ')')
                     compr <- parseArrayCompr
                     return (ACFor ident expr1 compr)
 
 
 parseArrayCompr :: Parser ArrayCompr
-parseArrayCompr = choice [ parseACBody, parseArrayFor, parseACIf ]
+parseArrayCompr = choice [ try parseACBody, parseArrayFor, parseACIf ]
 
 
 parseACBody :: Parser ArrayCompr
@@ -142,16 +169,21 @@ parseACIf = do
 
 parseArray :: Parser Expr
 parseArray = do
-                _ <- char '['
+                _ <- parseWhitespace(char '[')
                 exprs <- parseExprs
-                _ <- char ']'
+                _ <- parseWhitespace(char ']')
                 return (Array exprs)
+
+-- isLegalChar :: Char -> Bool
+-- isLegalChar c | ord c >= 32 && ord c <= 126 = True
+--               | otherwise = False
 
 parseStr :: Parser Expr
 parseStr = do
-                _ <- char '\''
-                res <- many alphaNum
-                _ <- char '\''
+                _ <- parseWhitespace(char '\'')
+                res <- parseWhitespace(many alphaNum)
+                --res <- many (satisfy isLegalChar)
+                _ <- parseWhitespace(char '\'')
                 return (String res)
 
 parseTrue :: Parser Expr
@@ -175,10 +207,10 @@ parseExpr' = parseAdditon `chainl1` parseCompare
 
 parseCompare :: Parser (Expr -> Expr -> Expr)
 parseCompare = (do
-              _ <- string "<"
+              _ <- parseWhitespace(string "<")
               return (\x y -> Call "<" [x, y]))
               <|> (do
-                      _ <- string "==="
+                      _ <- parseWhitespace(string "===")
                       return (\x y -> Call "===" [x, y]))
 
 parseAdditon :: Parser Expr
@@ -188,7 +220,7 @@ parseAdditon = do
 
 parseAdditon' :: Expr -> Parser Expr
 parseAdditon' input = (do
-                         addOp <- char '+' <|> char '-'
+                         addOp <- parseWhitespace(char '+' <|> char '-')
                          cons <- parseProd
                          parseAdditon' $ Call [addOp] [input, cons])
                          <|> return input
@@ -200,7 +232,7 @@ parseProd = do
 
 parseProd' :: Expr -> Parser Expr
 parseProd' input = (do
-                       prodOp <- char '*' <|> char '%'
+                       prodOp <- parseWhitespace(char '*' <|> char '%')
                        cons <- parseCons
                        parseProd' $ Call [prodOp] [input, cons])
                        <|> return input
