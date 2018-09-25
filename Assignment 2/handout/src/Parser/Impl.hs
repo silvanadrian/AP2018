@@ -29,6 +29,13 @@ parseNumber = do
                 res <- posNumber <|> negNumber
                 return res
 
+parseParentheses :: Parser Expr
+parseParentheses = do
+                       _ <- char '('
+                       expr <- parseExpr
+                       _ <- char ')'
+                       return expr
+
 
 -- check for comma
 parseExpr :: Parser Expr
@@ -57,7 +64,8 @@ parseCons = choice [
                 try parseCall,
                 parseIdent,
                 try parseArray,
-                parseArrayStart ]
+                parseArrayStart,
+                parseParentheses ]
 
 parseIdent :: Parser Expr
 parseIdent = do
