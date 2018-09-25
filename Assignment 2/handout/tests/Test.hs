@@ -24,6 +24,7 @@ tests =
     , parseCallTests
     , parseIdentTests
     , parseArrayTests
+    , parseStartArrayTests
     ]
 
 parseNumberTests :: TestTree
@@ -119,17 +120,17 @@ parseIdentTests = testGroup "Ident"
 parseArrayTests :: TestTree
 parseArrayTests = testGroup "Array"
   [
-    testCase "Array" $ parseArray("[1,2]") @?= Right (Array [Number 1,Number 2]),
-    testCase "Array whitespace" $ parseArray("[ 1,  'sds']   ") @?= Right (Array [Number 1,String "sds"])
+    testCase "Array" $ parseString("[1,2]") @?= Right (Array [Number 1,Number 2]),
+    testCase "Array whitespace" $ parseString("[ 1,  'sds']   ") @?= Right (Array [Number 1,String "sds"])
   ]
 
 
-{-parseStartArrayTests :: TestTree
+parseStartArrayTests :: TestTree
 parseStartArrayTests = testGroup "Array Compr"
   [
-    testCase "Array for" $ parseArrayStart("[1,2]") @?= Right (Array [Number 1,Number 2]),
-    testCase "Array whitespace" $ parseArrayStart("[ 1,  'sds']   ") @?= Right (Array [Number 1,String "sds"])
-  ]-}
+    testCase "Array for" $ parseString("[for (x of 2) 2]") @?= Right (Compr (ACFor "x" (Number 2) (ACBody (Number 2)))),
+    testCase "Array whitespace" $ parseString("[ 1,  'sds']   ") @?= Right (Array [Number 1,String "sds"])
+  ]
 
 constantTests :: TestTree
 constantTests =

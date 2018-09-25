@@ -60,20 +60,6 @@ identParser s = parse (do
                     eof
                     return res) "ERROR" s
 
--- for testing parseArray
-arrayParser :: String -> Either ParseError Expr
-arrayParser s = parse (do
-                    res <- parseArray
-                    eof
-                    return res) "ERROR" s
-
--- for testing parseArrayStart
-arrayStartParser :: String -> Either ParseError Expr
-arrayStartParser s = parse (do
-                    res <- parseArrayStart
-                    eof
-                    return res) "ERROR" s
-
 -- for testing parseParentheses
 parenthesesParser :: String -> Either ParseError Expr
 parenthesesParser s = parse (do
