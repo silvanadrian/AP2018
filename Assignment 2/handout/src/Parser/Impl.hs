@@ -47,7 +47,17 @@ parseComma expr1 = (do
 
 
 parseCons :: Parser Expr
-parseCons = choice [ parseNumber, parseStr, parseTrue, parseFalse, parseUndefined, try parseAssign, parseIdent ]
+parseCons = choice [
+                parseNumber,
+                parseStr,
+                parseTrue,
+                parseFalse,
+                parseUndefined,
+                try parseAssign,
+                try parseCall,
+                parseIdent,
+                try parseArray,
+                parseArrayStart ]
 
 parseIdent :: Parser Expr
 parseIdent = do
@@ -62,12 +72,77 @@ parseAssign = do
                 expr1 <- parseExpr'
                 return (Assign ident expr1)
 
+parseCall :: Parser Expr
+parseCall = do
+                Var ident <- parseIdent
+                _ <- char '('
+                exprs <- parseExprs
+                _ <- char ')'
+                return (Call ident exprs)
 
+
+parseExprs :: Parser [Expr]
+parseExprs = do
+                expr1 <- parseExpr'
+                parseCommaExprs expr1
+              <|> return []
+
+parseCommaExprs :: Expr -> Parser [Expr]
+parseCommaExprs expr1 = do
+                            _ <- char ','
+                            expr2 <- parseExprs
+                            return (expr1:expr2)
+                          <|> return [expr1]
+
+parseArrayStart :: Parser Expr
+parseArrayStart = do
+                    _ <- char '['
+                    compr <- parseArrayFor
+                    _ <- char ']'
+                    return (Compr compr)
+
+parseArrayFor :: Parser ArrayCompr
+parseArrayFor = do
+                    _ <- string "for"
+                    _ <- char '('
+                    Var ident <- parseIdent
+                    _ <- string "of"
+                    expr1 <- parseExpr'
+                    _ <- char ')'
+                    compr <- parseArrayCompr
+                    return (ACFor ident expr1 compr)
+
+
+parseArrayCompr :: Parser ArrayCompr
+parseArrayCompr = choice [ parseACBody, parseArrayFor, parseACIf ]
+
+
+parseACBody :: Parser ArrayCompr
+parseACBody = do
+                expr <- parseExpr'
+                return (ACBody expr)
+
+parseACIf :: Parser ArrayCompr
+parseACIf = do
+                _ <- string "if"
+                _ <- char '('
+                expr1 <- parseExpr'
+                _ <- char ')'
+                compr <- parseArrayCompr
+                return (ACIf expr1 compr)
+
+
+parseArray :: Parser Expr
+parseArray = do
+                _ <- char '['
+                exprs <- parseExprs
+                _ <- char ']'
+                return (Array exprs)
 
 parseStr :: Parser Expr
 parseStr = do
                 _ <- char '\''
-                res <- many letter
+                res <- many alphaNum
                 _ <- char '\''
                 return (String res)
 
