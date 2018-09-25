@@ -79,26 +79,31 @@ parseComma expr1 = (do
                 expr2 <- parseWhitespace parseExpr'
                 return (Comma expr1 expr2)) <|> return expr1
 
+keywords :: [String]
+keywords = ["true", "false", "undefined", "for", "of", "if"]
 
 parseCons :: Parser Expr
 parseCons = choice [
+                try parseArray,
+                parseArrayStart,
+                try parseCall,
+                parseParentheses,
                 parseNumber,
                 parseStr,
                 parseTrue,
                 parseFalse,
                 parseUndefined,
                 try parseAssign,
-                try parseCall,
-                parseIdent,
-                try parseArray,
-                parseArrayStart,
-                parseParentheses ]
+                try parseIdent
+                ]
 
 parseIdent :: Parser Expr
 parseIdent = do
                 fc <- letter
                 rest <- many (digit <|> letter <|> char '_')
-                return (Var (fc:rest::String))
+                let input = fc:rest
+                if input `notElem` keywords then return (Var input)
+                                              else fail "should not be a keyword"
 
 parseAssign :: Parser Expr
 parseAssign = do
@@ -159,10 +164,10 @@ parseACBody = do
 
 parseACIf :: Parser ArrayCompr
 parseACIf = do
-                _ <- string "if"
-                _ <- char '('
-                expr1 <- parseExpr'
-                _ <- char ')'
+                _ <- parseWhitespace(string "if")
+                _ <- parseWhitespace(char '(')
+                expr1 <- parseWhitespace(parseExpr')
+                _ <- parseWhitespace(char ')')
                 compr <- parseArrayCompr
                 return (ACIf expr1 compr)
 

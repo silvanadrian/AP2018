@@ -25,6 +25,11 @@ tests =
     , parseIdentTests
     , parseArrayTests
     , parseStartArrayTests
+    , parseParanthesTests
+    , parseExprs
+    , parseComma
+    , parseExprTests
+    , parseArrayCompr
     ]
 
 parseNumberTests :: TestTree
@@ -95,42 +100,136 @@ parseUndefinedTests =
     ]
 
 parseAssignTests :: TestTree
-parseAssignTests = testGroup "Assign"
-  [
-    testCase "Assign" $ assignParser("x=3") @?= Right (Assign "x" (Number 3)),
-    testCase "Assign whitespace/special char" $ assignParser("x = \n 3") @?= Right (Assign "x" (Number 3)),
-    testCase "Assign underline" $ assignParser("x_x=0") @?= Right (Assign "x_x" (Number 0))
-  ]
+parseAssignTests =
+  testGroup
+    "Assign"
+    [ testCase "Assign" $ assignParser ("x=3") @?= Right (Assign "x" (Number 3))
+    , testCase "Assign whitespace/special char" $
+      assignParser ("x = \n 3") @?= Right (Assign "x" (Number 3))
+    , testCase "Assign underline" $
+      assignParser ("x_x=0") @?= Right (Assign "x_x" (Number 0))
+    ]
 
 parseCallTests :: TestTree
-parseCallTests = testGroup "Call"
-  [
-    testCase "Call" $ callParser("x(12)") @?= Right (Call "x" [Number 12]),
-    testCase "Call whitespace" $ callParser("x ( 12 ) ") @?= Right (Call "x" [Number 12])
-  ]
+parseCallTests =
+  testGroup
+    "Call"
+    [ testCase "Call" $ callParser ("x(12)") @?= Right (Call "x" [Number 12])
+    , testCase "Call whitespace" $
+      callParser ("x ( 12 ) ") @?= Right (Call "x" [Number 12])
+    ]
 
 parseIdentTests :: TestTree
-parseIdentTests = testGroup "Ident"
-  [
-    testCase "Ident" $ identParser("x_x") @?= Right (Var "x_x"),
-    testCase "Ident keyword" $ identParser("falsee") @?= Right (Var "falsee"),
-    testCase "Ident whitespace" $ show(identParser("x_x    ")) @?= "Left \"ERROR\" (line 1, column 4):\nunexpected ' '\nexpecting digit, letter, \"_\" or end of input"
-  ]
+parseIdentTests =
+  testGroup
+    "Ident"
+    [ testCase "Ident" $ identParser ("x_x") @?= Right (Var "x_x")
+    , testCase "Ident similar to keyword" $
+      identParser ("falsee") @?= Right (Var "falsee")
+    , testCase "Ident keyword" $
+      show (identParser ("false")) @?=
+      "Left \"ERROR\" (line 1, column 6):\nunexpected end of input\nexpecting digit, letter or \"_\"\nshould not be a keyword"
+    , testCase "Ident whitespace" $
+      show (identParser ("x_x    ")) @?=
+      "Left \"ERROR\" (line 1, column 4):\nunexpected ' '\nexpecting digit, letter, \"_\" or end of input"
+    ]
 
 parseArrayTests :: TestTree
-parseArrayTests = testGroup "Array"
-  [
-    testCase "Array" $ parseString("[1,2]") @?= Right (Array [Number 1,Number 2]),
-    testCase "Array whitespace" $ parseString("[ 1,  'sds']   ") @?= Right (Array [Number 1,String "sds"])
-  ]
-
+parseArrayTests =
+  testGroup
+    "Array"
+    [ testCase "Array" $
+      parseString ("[1,2]") @?= Right (Array [Number 1, Number 2])
+    , testCase "Array whitespace" $
+      parseString ("[ 1,  'sds']   ") @?= Right (Array [Number 1, String "sds"])
+    ]
 
 parseStartArrayTests :: TestTree
-parseStartArrayTests = testGroup "Array Compr"
-  [
-    testCase "Array for" $ parseString("[for (x of 2) 2]") @?= Right (Compr (ACFor "x" (Number 2) (ACBody (Number 2)))),
-    testCase "Array whitespace" $ parseString("[ 1,  'sds']   ") @?= Right (Array [Number 1,String "sds"])
-  ]
+parseStartArrayTests =
+  testGroup
+    "Array Compr"
+    [ testCase "Array for" $
+      parseString ("[for (x of 2) 2]") @?=
+      Right (Compr (ACFor "x" (Number 2) (ACBody (Number 2))))
+    ]
+
+parseParanthesTests :: TestTree
+parseParanthesTests =
+  testGroup
+    "Parantheses"
+    [ testCase "Parantheses" $ parseString ("(1)") @?= Right (Number 1)
+    , testCase "Parantheses whitespace" $
+      parseString ("(   1    )") @?= Right (Number 1)
+    ]
+
+parseExprs :: TestTree
+parseExprs =
+  testGroup
+    "parseExprs"
+    [ testCase "parseExprs numbers" $
+      parseString ("[1,2,3]") @?= Right (Array [Number 1, Number 2, Number 3])
+    , testCase "parseExprs" $
+      parseString ("['a','b','c']") @?=
+      Right (Array [String "a", String "b", String "c"])
+    ]
+
+parseComma :: TestTree
+parseComma =
+  testGroup
+    "Comma"
+    [ testCase "Parse Comma" $
+      parseString ("1,2") @=? Right (Comma (Number 1) (Number 2))
+    , testCase "Parse nested commas" $
+      parseString ("1,(1,(3,4))") @?=
+      Right (Comma (Number 1) (Comma (Number 1) (Comma (Number 3) (Number 4))))
+    ]
+
+parseExprTests :: TestTree
+parseExprTests =
+  testGroup
+    "parseExpr"
+    [ testCase "Additon" $
+      parseString ("1+1") @=? Right (Call "+" [Number 1, Number 1])
+    , testCase "Subtraction" $
+      parseString ("1-1") @?= Right (Call "-" [Number 1, Number 1])
+    , testCase "Mul" $
+      parseString ("1*1") @?= Right (Call "*" [Number 1, Number 1])
+    , testCase "Mod" $
+      parseString ("1%1") @?= Right (Call "%" [Number 1, Number 1])
+    , testCase "Smaller Then" $
+      parseString ("1<1") @?= Right (Call "<" [Number 1, Number 1])
+    , testCase "Equals" $
+      parseString ("1===1") @?= Right (Call "===" [Number 1, Number 1])
+    ]
+
+parseArrayCompr :: TestTree
+parseArrayCompr =
+  testGroup
+    "Array Compr"
+    [ testCase "for" $
+      parseString ("[for (x of 2) 3]") @=?
+      Right (Compr (ACFor "x" (Number 2) (ACBody (Number 3))))
+    , testCase "nested for" $
+      parseString ("[for (x of 2) for (x of 3) 3]") @=?
+      Right
+        (Compr (ACFor "x" (Number 2) (ACFor "x" (Number 3) (ACBody (Number 3)))))
+    , testCase "nested if" $
+      parseString ("[for (x of 2) if(1) 2]") @=?
+      Right (Compr (ACFor "x" (Number 2) (ACIf (Number 1) (ACBody (Number 2)))))
+    , testCase "mixed for/if" $
+      parseString ("[for (x of 2) if(1) for (y of 2) if(false) for(z of 5) 2]") @=?
+      Right
+        (Compr
+           (ACFor
+              "x"
+              (Number 2)
+              (ACIf
+                 (Number 1)
+                 (ACFor
+                    "y"
+                    (Number 2)
+                    (ACIf FalseConst (ACFor "z" (Number 5) (ACBody (Number 2))))))))
+    ]
 
 constantTests :: TestTree
 constantTests =

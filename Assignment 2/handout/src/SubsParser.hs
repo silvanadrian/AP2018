@@ -9,8 +9,6 @@ module SubsParser (
     parseAssign,
     parseCall,
     parseIdent,
-    parseArray,
-    parseArrayStart,
     parseParentheses
   ) where
 
