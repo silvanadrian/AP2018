@@ -1,6 +1,17 @@
 module SubsParser (
     parseString,
-    parseFile
+    parseFile,
+    parseNumber,
+    parseStr,
+    parseFalse,
+    parseTrue,
+    parseUndefined,
+    parseAssign,
+    parseCall,
+    parseIdent,
+    parseArray,
+    parseArrayStart,
+    parseParentheses
   ) where
 
 import SubsAst
