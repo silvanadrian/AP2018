@@ -111,7 +111,7 @@ parseCons =
     , parseFalse
     , parseUndefined
     , try parseAssign
-    , try parseIdent
+    , parseIdent
     ]
 
 parseIdent :: Parser Expr
@@ -170,7 +170,7 @@ parseArrayFor = do
   return (ACFor ident expr1 compr)
 
 parseArrayCompr :: Parser ArrayCompr
-parseArrayCompr = choice [try parseACBody, parseArrayFor, parseACIf]
+parseArrayCompr = choice [ try parseACBody, parseArrayFor, parseACIf]
 
 parseACBody :: Parser ArrayCompr
 parseACBody = do

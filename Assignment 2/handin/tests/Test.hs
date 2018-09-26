@@ -31,6 +31,7 @@ tests =
     , parseSimpleExprTests
     , parseComplexExprTests
     , predefinedTests
+    , parseErrorTest
     ]
 
 parseNumberTests :: TestTree
@@ -159,7 +160,8 @@ parseStartArrayTests =
     "Array Compr"
     [ testCase "Array for" $
       parseString ("[for (x of 2) 2]") @?=
-      Right (Compr (ACFor "x" (Number 2) (ACBody (Number 2))))
+      Right (Compr (ACFor "x" (Number 2) (ACBody (Number 2)))),
+      testCase "Empty Array" $ parseString("[]") @?= Right(Array [])
     ]
 
 parseParanthesTests :: TestTree
@@ -190,7 +192,7 @@ parseComma =
   testGroup
     "Comma"
     [ testCase "Parse Comma" $
-      parseString ("1,2") @=? Right (Comma (Number 1) (Number 2))
+      parseString ("1,2") @?= Right (Comma (Number 1) (Number 2))
     , testCase "Parse nested commas" $
       parseString ("1,(1,(3,4))") @?=
       Right (Comma (Number 1) (Comma (Number 1) (Comma (Number 3) (Number 4))))
@@ -209,7 +211,7 @@ parseExprTests =
   testGroup
     "parseExpr"
     [ testCase "Additon" $
-      parseString ("1+1") @=? Right (Call "+" [Number 1, Number 1])
+      parseString ("1+1") @?= Right (Call "+" [Number 1, Number 1])
     , testCase "Subtraction" $
       parseString ("1-1") @?= Right (Call "-" [Number 1, Number 1])
     , testCase "Mul" $
@@ -227,17 +229,17 @@ parseArrayCompr =
   testGroup
     "Array Compr"
     [ testCase "for" $
-      parseString ("[for (x of 2) 3]") @=?
+      parseString ("[for (x of 2) 3]") @?=
       Right (Compr (ACFor "x" (Number 2) (ACBody (Number 3))))
     , testCase "nested for" $
-      parseString ("[for (x of 2) for (x of 3) 3]") @=?
+      parseString ("[for (x of 2) for (x of 3) 3]") @?=
       Right
         (Compr (ACFor "x" (Number 2) (ACFor "x" (Number 3) (ACBody (Number 3)))))
     , testCase "nested if" $
-      parseString ("[for (x of 2) if(1) 2]") @=?
+      parseString ("[for (x of 2) if(1) 2]") @?=
       Right (Compr (ACFor "x" (Number 2) (ACIf (Number 1) (ACBody (Number 2)))))
     , testCase "mixed for/if" $
-      parseString ("[for (x of 2) if(1) for (y of 2) if(false) for(z of 5) 2]") @=?
+      parseString ("[for (x of 2) if(1) for (y of 2) if(false) for(z of 5) 2]") @?=
       Right
         (Compr
            (ACFor
@@ -315,7 +317,7 @@ parseComplexExprTests =
            ])
     , testCase "arrayCompr complex" $
       parseString
-        ("[for (a of 4) 1] * [for (a of abc) if (true) if (false) 2*3]") @=?
+        ("[for (a of 4) 1] * [for (a of abc) if (true) if (false) 2*3]") @?=
       Right
         (Call
            "*"
@@ -328,6 +330,15 @@ parseComplexExprTests =
                      TrueConst
                      (ACIf FalseConst (ACBody (Call "*" [Number 2, Number 3])))))
            ])
+    ]
+
+parseErrorTest :: TestTree
+parseErrorTest =
+  testGroup
+    "Parse Fail"
+    [ testCase "let parser fail" $
+      show (parseString ("")) @?=
+      "Left (ParseError \"\\\"ERROR\\\" (line 1, column 1):\\nunexpected end of input\\nexpecting white space, \\\"//\\\", \\\"[\\\", letter, \\\"(\\\", digit, \\\"-\\\", \\\"'\\\", \\\"true\\\", \\\"false\\\" or \\\"undefined\\\"\")"
     ]
 
 predefinedTests :: TestTree

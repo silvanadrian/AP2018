@@ -27,38 +27,55 @@ breaklines}
 
 \section{Design/Implementation}
 
-
 \subsection{Choice of Parser combinator Library}
 We decided to use \textbf{Parsec} because of the better error handling capabailities compared to \textbf{ReadP}.
 
 \subsection{Whitespace}
-We decided to remove leading whitespace and trailing whitespace to parse the tokens, this we do by using a function `parseLeadingWhitespace` and `parseWhitespace` which take care ok removing the whitespaces, newlines and other characters which can't be parsed.
+We decided to remove leading whitespace and trailing whitespace to parse the tokens, this we do by using a function `parseLeadingWhitespace` and `parseWhitespace` which takes care of removing the whitespaces, newlines and other characters in strings as well.
 
-\subsection{}
+\subsection{String parsing}
+
+
+\subsection{Precedence and Associativity}
+
+\subsection{Usages of try}
 
 \section{Code Assessment}
 
-We are relatively confident that we
+We are relatively confident that we were able to program a more or less working parser for Subscript, also thanks to our Tests which should test most cases or at least those we came up with.
+Nonetheless the Code seems to get less readable since everything is grouped in one single file, same for the tests which end up to be quite long (testing on string for ParseErrors also doen't seem like a nice solution, but we didn't came up with a better one).
+Our way of cope with the overall complexity was by trying grouping the function which belong together as good as possible but there definitely would be a nicer solution available.
+
 
 \subsection{Tests}
 
-We wrote overall 68 Tests which either Test more Complex expressions or the very basic functionality of the parser.
+We wrote overall 70 Tests which either Test more Complex expressions or the very basic functionality of the parser.
 For that we also had to write a `ParserUtils.hs` file which has some utilities for calling the actual functions for testing (like `parseNumber`), for ArrayComprehensions on the other side we used the `parseString` function directly since we walked into the Problem that calling `parseArrayCompr` wasn't possible right away, so we went the easy way and used `parseString`.
 
 \subsection{Test Coverage}
-
-\subsection{OnlineTA}
-
+Our test coverage is quite high and pretty much should test all cases possible, at least 97\% of epxpressions are used:
+\begin{itemize}
+	\item  97\% expressions used (448/458)
+ 	\item 63\% boolean coverage (7/11)
+     \item 50\% guards (4/8), 2 always True, 1 always False, 1 unevaluated
+     \item 100\% 'if' conditions (3/3)
+     \item 100\% qualifiers (0/0)
+ 	 \item 83\% alternatives used (15/18)
+	 \item 100\% local declarations used (1/1)
+ 	 \item 88\% top-level declarations used (46/52)
+\end{itemize}
 
 
 \appendix
 \section{Code Listing}
 
-\inputminted{haskell}{handout/src/Parser/Impl.hs}
+\inputminted{haskell}{handin/src/Parser/Impl.hs}
 
 \section{Tests}
 
-\inputminted{haskell}{handout/tests/Test.hs}
+\inputminted{haskell}{handin/tests/Test.hs}
+
+\inputminted{haskell}{handin/tests/ParserUtils.hs}
 
 
 \end{document}}
