@@ -5,7 +5,6 @@ import Test.Tasty.HUnit
 import ParserUtils
 import SubsAst
 import SubsParser
-import Text.ParserCombinators.Parsec.Error
 
 main = defaultMain tests
 
