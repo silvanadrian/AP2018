@@ -202,6 +202,8 @@ isLegalChar c | c == '\'' = False
 
 parseCharInStr :: Parser Char
 parseCharInStr = do
+                  -- checks for newline in string
+                  _ <- option "" (try (string "\\\n"))
                   a <- isLegalBackslash <|> satisfy isLegalChar
                   -- checks for newline in string
                   _ <- option "" (try (string "\\\n"))
@@ -210,8 +212,6 @@ parseCharInStr = do
 parseStr :: Parser Expr
 parseStr = do
                 _ <- char '\''
-                -- checks for newline in start of string
-                _ <- option "" (try (string "\\\n"))
                 res <- many parseCharInStr
                 _ <- parseWhitespace(char '\'')
                 return (String res)
