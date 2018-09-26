@@ -13,7 +13,6 @@ tests :: TestTree
 tests =
   testGroup
     "Tests"
-    -- predefinedTests
     [ constantTests
     , parseNumberTests
     , parseStringTests
@@ -30,6 +29,9 @@ tests =
     , parseComma
     , parseExprTests
     , parseArrayCompr
+    , parseSimpleExprTests
+    , parseComplexExprTests
+    , predefinedTests
     ]
 
 parseNumberTests :: TestTree
@@ -60,13 +62,13 @@ parseStringTests =
     , testCase "String alphaNum" $
       stringParser ("'abc123'") @?= Right (String "abc123")
     , testCase "String allowed special chars" $
-      stringParser ("'abc\n\t") @?= Right (String "abc")
+      stringParser ("'abc\n\t'") @?= Right (String "abc")
     , testCase "String  not allowed special char" $
-      stringParser ("'\a'") @?= Right (String "Error")
+      show(stringParser ("'\a'")) @?= ""
     , testCase "String whitespaced" $
       stringParser ("'asdas asdasd'") @?= Right (String "asdas asdasd")
     , testCase "String newline" $
-      stringParser ("'foo\\\nbar'") @?= Right (String "foobar")
+      stringParser ("'foo \\\n bar'") @?= Right (String "foobar")
     ]
 
 parseFalseTests :: TestTree
@@ -171,6 +173,9 @@ parseExprs =
     , testCase "parseExprs" $
       parseString ("['a','b','c']") @?=
       Right (Array [String "a", String "b", String "c"])
+    , testCase "parseExprs ident" $
+      parseString ("a (1,2,3)") @?=
+      Right (Call "a" [Number 1, Number 2, Number 3])
     ]
 
 parseComma :: TestTree
@@ -182,6 +187,14 @@ parseComma =
     , testCase "Parse nested commas" $
       parseString ("1,(1,(3,4))") @?=
       Right (Comma (Number 1) (Comma (Number 1) (Comma (Number 3) (Number 4))))
+    , testCase "many commas" $
+      parseString ("1,2,3,'a','b'") @?=
+      Right
+        (Comma
+           (Number 1)
+           (Comma
+              (Number 2)
+              (Comma (Number 3) (Comma (String "a") (String "b")))))
     ]
 
 parseExprTests :: TestTree
@@ -242,6 +255,31 @@ constantTests =
     , testCase "Undefined" $ parseString ("undefined") @?= Right (Undefined)
     , testCase "Ident" $ parseString ("sdsd") @?= Right (Var "sdsd")
     ]
+
+parseSimpleExprTests :: TestTree
+parseSimpleExprTests =
+  testGroup
+    "Simple expr tests"
+    [ testCase "equal" $
+      parseString ("a===b===c") @?=
+      Right (Call "===" [Call "===" [Var "a", Var "b"], Var "c"])
+    , testCase "assign" $
+      parseString ("a=b=undefined") @?=
+      Right (Assign "a" (Assign "b" Undefined))
+    , testCase "smallerThen" $
+      parseString ("2<3<4") @?=
+      Right (Call "<" [Call "<" [Number 2, Number 3], Number 4]),
+      testCase "whitespace" $ parseString("12   \v \t\t     \n") @?= Right (Number 12),
+      testCase "comment" $ parseString("1 //comment 11212121212\n,2") @?= Right (Comma (Number 1) (Number 2)),
+      testCase "comment at start" $ parseString("//comment \n 2   ") @?= Right (Number 2)
+    ]
+
+
+parseComplexExprTests :: TestTree
+parseComplexExprTests = testGroup "Complex expr tests"
+  [
+    testCase "scope.js" $ parseString("x = 42, y = [for (x of 'abc') x],[x, y]") @?= Right (Comma (Assign "x" (Number 42)) (Comma (Assign "y" (Compr (ACFor "x" (String "abc") (ACBody (Var "x"))))) (Array [Var "x",Var "y"])))
+  ]
 
 predefinedTests :: TestTree
 predefinedTests =
