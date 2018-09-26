@@ -6,7 +6,7 @@ module Parser.Impl where
 import           SubsAst
 import           Text.Parsec
 import           Text.Parsec.String
---import           Data.Char
+import           Data.Char
 
 parseString :: String -> Either ParseError Expr
 parseString s = parse (do
@@ -76,7 +76,7 @@ parseNotComma = do
 parseComma :: Expr -> Parser Expr
 parseComma expr1 = (do
                 _ <- parseWhitespace(char ',')
-                expr2 <- parseWhitespace parseExpr'
+                expr2 <- parseWhitespace parseExpr
                 return (Comma expr1 expr2)) <|> return expr1
 
 keywords :: [String]
@@ -179,15 +179,25 @@ parseArray = do
                 _ <- parseWhitespace(char ']')
                 return (Array exprs)
 
--- isLegalChar :: Char -> Bool
--- isLegalChar c | ord c >= 32 && ord c <= 126 = True
---               | otherwise = False
+-- isLegalAfterBackslash :: Char -> Either ParseError Char
+-- isLegalAfterBackslash 
+
+-- isLegalBackslash :: Parser Char
+-- isLegalBackslash = do
+--                     _ <- char '\\'
+--                     c <- oneOf ['\'', 'n', 't', '\\']
+
+isLegalChar :: Char -> Bool
+isLegalChar c | c == '\'' = False
+              | c == '\\' = False
+              | ord c >= 32 && ord c <= 126 = True
+              | otherwise = False
 
 parseStr :: Parser Expr
 parseStr = do
-                _ <- parseWhitespace(char '\'')
-                res <- parseWhitespace(many alphaNum)
-                --res <- many (satisfy isLegalChar)
+                _ <- char '\''
+                -- res <- parseWhitespace(many alphaNum)
+                res <- many (satisfy isLegalChar)
                 _ <- parseWhitespace(char '\'')
                 return (String res)
 
@@ -220,7 +230,7 @@ parseCompare = (do
 
 parseAdditon :: Parser Expr
 parseAdditon = do
-                  prod <- parseProd
+                  prod <- parseWhitespace(parseProd)
                   parseAdditon' prod
 
 parseAdditon' :: Expr -> Parser Expr
@@ -232,7 +242,7 @@ parseAdditon' input = (do
 
 parseProd :: Parser Expr
 parseProd = do
-                cons <- parseCons
+                cons <- parseWhitespace(parseCons)
                 parseProd' cons
 
 parseProd' :: Expr -> Parser Expr
