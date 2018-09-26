@@ -2,8 +2,11 @@ module ParserUtils where
 
 import SubsAst
 import SubsParser
-import Text.Parsec
+import Text.Parsec.Char
+import Text.Parsec.Combinator
+import Text.Parsec.Prim
 import Text.Parsec.String
+import Text.Parsec.Error
 
 -- for testing parseNumber
 numberParser :: String -> Either ParseError Expr

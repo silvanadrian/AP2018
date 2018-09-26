@@ -3,6 +3,8 @@
 
 .idea/
 
+.texpadtmp/
+
 # Minted
 _minted-report*
 
