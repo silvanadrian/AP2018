@@ -62,15 +62,21 @@ parseStringTests =
     , testCase "String alphaNum" $
       stringParser ("'abc123'") @?= Right (String "abc123")
     , testCase "String allowed special chars" $
-      stringParser ("'abc\n\t'") @?= Right (String "abc")
+      stringParser ("'abc\\n\\t'") @?= Right (String "abc\n\t")
     , testCase "String  not allowed special char" $
-      show (stringParser ("'\a'")) @?= ""
+      show (stringParser ("'\\\a'")) @?=
+      "Left \"ERROR\" (line 1, column 3):\nunexpected \"\\a\""
     , testCase "String whitespaced" $
       stringParser ("'asdas asdasd'") @?= Right (String "asdas asdasd")
     , testCase "String newline" $
-      stringParser ("'foo \\\n bar'") @?= Right (String "foobar")
-     , testCase "Not Allowed ASCII character" $
-             show (stringParser ("'ü'")) @?= "Left \"ERROR\" (line 1, column 2):\nunexpected \"\\252\"\nexpecting \"'\""
+      stringParser ("'foo\\\nbar'") @?= Right (String "foobar")
+    , testCase "Not Allowed ASCII character" $
+      show (stringParser ("'ü'")) @?=
+      "Left \"ERROR\" (line 1, column 2):\nunexpected \"\\252\"\nexpecting \"\\\\\\n\", \"\\\\\" or \"'\""
+    , testCase "backslash chars" $
+      stringParser ("'\\t\\n\\'\\\\\'") @?= Right (String "\t\n'\\")
+    , testCase "string comment" $
+      stringParser ("'//Comment 123'") @?= Right (String "//Comment 123")
     ]
 
 parseFalseTests :: TestTree
