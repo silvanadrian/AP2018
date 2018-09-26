@@ -17,12 +17,12 @@ data ParseError =
 
 parseString :: String -> Either ParseError Expr
 parseString s =
-  case (parse
-          (do res <- parseLeadingWhitespace parseExpr
-              eof
-              return res)
-          "ERROR"
-          s) of
+  case parse
+         (do res <- parseLeadingWhitespace parseExpr
+             eof
+             return res)
+         "ERROR"
+         s of
     Left a -> Left (ParseError (show a))
     Right b -> Right b
 
@@ -43,8 +43,7 @@ negNumber = do
 
 parseNumber :: Parser Expr
 parseNumber = do
-  res <- parseWhitespace (posNumber <|> negNumber)
-  return res
+  parseWhitespace (posNumber <|> negNumber)
 
 parseParentheses :: Parser Expr
 parseParentheses = do
@@ -126,14 +125,14 @@ parseIdent = do
 
 parseAssign :: Parser Expr
 parseAssign = do
-  Var ident <- parseWhitespace (parseIdent)
+  Var ident <- parseWhitespace parseIdent
   _ <- parseWhitespace (char '=')
   expr1 <- parseExpr'
   return (Assign ident expr1)
 
 parseCall :: Parser Expr
 parseCall = do
-  Var ident <- parseWhitespace (parseIdent)
+  Var ident <- parseWhitespace parseIdent
   _ <- parseWhitespace (char '(')
   exprs <- parseExprs
   _ <- parseWhitespace (char ')')
@@ -163,9 +162,9 @@ parseArrayFor :: Parser ArrayCompr
 parseArrayFor = do
   _ <- parseWhitespace (string "for")
   _ <- parseWhitespace (char '(')
-  Var ident <- parseWhitespace (parseIdent)
+  Var ident <- parseWhitespace parseIdent
   _ <- parseWhitespace (string "of")
-  expr1 <- parseWhitespace (parseExpr')
+  expr1 <- parseWhitespace parseExpr'
   _ <- parseWhitespace (char ')')
   compr <- parseArrayCompr
   return (ACFor ident expr1 compr)
@@ -182,7 +181,7 @@ parseACIf :: Parser ArrayCompr
 parseACIf = do
   _ <- parseWhitespace (string "if")
   _ <- parseWhitespace (char '(')
-  expr1 <- parseWhitespace (parseExpr')
+  expr1 <- parseWhitespace parseExpr'
   _ <- parseWhitespace (char ')')
   compr <- parseArrayCompr
   return (ACIf expr1 compr)
@@ -262,7 +261,7 @@ parseCompare =
 
 parseAdditon :: Parser Expr
 parseAdditon = do
-  prod <- parseWhitespace (parseProd)
+  prod <- parseWhitespace parseProd
   parseAdditon' prod
 
 parseAdditon' :: Expr -> Parser Expr
@@ -274,7 +273,7 @@ parseAdditon' input =
 
 parseProd :: Parser Expr
 parseProd = do
-  cons <- parseWhitespace (parseCons)
+  cons <- parseWhitespace parseCons
   parseProd' cons
 
 parseProd' :: Expr -> Parser Expr
