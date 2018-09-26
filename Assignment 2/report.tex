@@ -29,28 +29,28 @@ breaklines}
 \section{Design/Implementation}
 
 \subsection{Choice of Parser combinator Library}
-We decided to use \textbf{Parsec} because of the better error handling capabailities compared to \textbf{ReadP}.
+We decided to use \textbf{Parsec} because of the better error handling capabilities compared to \textbf{ReadP}.
 
 \subsection{Whitespace}
-We decided to remove leading whitespace and trailing whitespace to parse the tokens, this we do by using a function `parseLeadingWhitespace` and `parseWhitespace` which takes care of removing the whitespaces, newlines and other characters in strings as well.
+We decided to remove leading whitespace and trailing whitespace to parse the tokens, this we do by using a function `parseLeadingWhitespace` and `parseWhitespace` which takes care of removing the whitespaces.
 
 \subsection{String parsing}
 For String parsing we had to check each character to be a printable ASCII\footnote{\url{https://theasciicode.com.ar/ascii-printable-characters/tilde-swung-dash-ascii-code-126.html}}, which we did via the ordinal of each character.
-Also for parsing backslashes we had to check that they get escaped and so on, to be able to parse also the \textbackslash{t}, \textbackslash{n} and so on.
+Also for parsing backslashes we had to check that they get escaped, to be able to parse the \textbackslash{t}, \textbackslash{n} and so on.
 
 \subsection{Precedence and Associativity}
-We chose to rewrite the grammer so that the operators follow the precedence, by using `chainl1` and recursive calls through the operators (from === to + and so on).
+We chose to rewrite the grammar so that the operators follow the precedence, by using `chainl1` and recursive calls through the operators (from === to + and so on).
 Associativity we left it as described in the assignment.
 
 \subsection{Ident and Keywords}
 We had to check that no Ident has the name of a language keyword (like false or true), this we did by checking an ident against a list with the keywords.
 
 \subsection{Usages of try}
-We had to use try on a few occurences which are the following:
+We had to use try on a few occurrences which are the following:
 \subsubsection{try parseArray}
-By using try on parseArray we can be sure that it won't be an Array with ArrayFor and therefore don't walk into the issue of an ambiguity so it could be either an Array with Expr or an Array with ArrayFor.
+By using try on parseArray we can be sure that it won't be an Array with ArrayFor and therefore don't walk into the issue of an ambiguity so it could be either an Array with expression or an Array with ArrayFor.
 \subsubsection{try parseCall}
-We used a try on parseCall since we have to distinguish if it's an ident by itself or a functiion call (ident + parantheses).
+We used a try on parseCall since we have to distinguish if it's an ident by itself or a function call (ident + parentheses).
 
 \subsubsection{try parseAssign}
 We had to use try on parseAssign for the sake that ident could have a '=' after it or could be standing alone.
@@ -60,13 +60,13 @@ This way we are sure if it's either an Assign on ident or an ident itself (Var).
 Since we call parseExpr' here we expect a Expression but it could also end up to be a ACFor or ACIf so we have to try the ACBody to parse the Expression first so that we are sure that there is no for or if there.
 
 \subsubsection{(try (string "\textbackslash\textbackslash\textbackslash{n}"))}
-Try on newline since it could also fail on strings which don't have any newline, so we have to do a lookahead to be sure if a newline exists or not.
+Try on newline since it could also fail on strings which don't have any newline because it could be a different escaping character.
 
 \section{Code Assessment}
 
 We are relatively confident that we were able to program a more or less working parser for Subscript, also thanks to our Tests which should test most cases or at least those we came up with.
 Nonetheless the Code seems to get less readable since everything is grouped in one single file, same for the tests which end up to be quite long (testing on string for ParseErrors also doesn't seem like a nice solution, but we didn't came up with a better one).
-Our way of cope with the overall complexity was by trying grouping the function which belong together as good as possible but there definitely would be a nicer solution available.
+Our way of cope with the overall complexity was by trying grouping the function which belong together according to the grammar as good as possible but there definitely would be a nicer solution available.
 
 
 \subsection{Tests}
@@ -75,7 +75,7 @@ We wrote overall 72 Tests which either Test more Complex expressions or the very
 For that we also had to write a `ParserUtils.hs` file which has some utilities for calling the actual functions for testing (like `parseNumber`), for ArrayComprehensions on the other side we used the `parseString` function directly since we walked into the Problem that calling `parseArrayCompr` wasn't possible right away, so we went the easy way and used `parseString`.
 
 \subsection{Test Coverage}
-Our test coverage is quite high and pretty much should test all cases possible, at least 97\% of epxpressions are used:
+Our test coverage is quite high and pretty much should test all cases possible, at least 97\% of expressions are used:
 \begin{itemize}
 	\item  97\% expressions used (448/458)
  	\item 63\% boolean coverage (7/11)
@@ -87,6 +87,8 @@ Our test coverage is quite high and pretty much should test all cases possible, 
  	 \item 88\% top-level declarations used (46/52)
 \end{itemize}
 
+\subsection{OnlineTA}
+We weren't able to import the interpreter for subscript so the Online TA wasn't able to run it's tests on our code.
 \appendix
 \section{Code Listing}
 
