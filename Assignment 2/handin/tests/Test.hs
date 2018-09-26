@@ -64,11 +64,13 @@ parseStringTests =
     , testCase "String allowed special chars" $
       stringParser ("'abc\n\t'") @?= Right (String "abc")
     , testCase "String  not allowed special char" $
-      show(stringParser ("'\a'")) @?= ""
+      show (stringParser ("'\a'")) @?= ""
     , testCase "String whitespaced" $
       stringParser ("'asdas asdasd'") @?= Right (String "asdas asdasd")
     , testCase "String newline" $
       stringParser ("'foo \\\n bar'") @?= Right (String "foobar")
+     , testCase "Not Allowed ASCII character" $
+             show (stringParser ("'ü'")) @?= "Left \"ERROR\" (line 1, column 2):\nunexpected \"\\252\"\nexpecting \"'\""
     ]
 
 parseFalseTests :: TestTree
@@ -268,18 +270,60 @@ parseSimpleExprTests =
       Right (Assign "a" (Assign "b" Undefined))
     , testCase "smallerThen" $
       parseString ("2<3<4") @?=
-      Right (Call "<" [Call "<" [Number 2, Number 3], Number 4]),
-      testCase "whitespace" $ parseString("12   \v \t\t     \n") @?= Right (Number 12),
-      testCase "comment" $ parseString("1 //comment 11212121212\n,2") @?= Right (Comma (Number 1) (Number 2)),
-      testCase "comment at start" $ parseString("//comment \n 2   ") @?= Right (Number 2)
+      Right (Call "<" [Call "<" [Number 2, Number 3], Number 4])
+    , testCase "whitespace" $
+      parseString ("12   \v \t\t     \n") @?= Right (Number 12)
+    , testCase "comment" $
+      parseString ("1 //comment 11212121212\n,2") @?=
+      Right (Comma (Number 1) (Number 2))
+    , testCase "comment at start" $
+      parseString ("//comment \n 2   ") @?= Right (Number 2)
     ]
 
-
 parseComplexExprTests :: TestTree
-parseComplexExprTests = testGroup "Complex expr tests"
-  [
-    testCase "scope.js" $ parseString("x = 42, y = [for (x of 'abc') x],[x, y]") @?= Right (Comma (Assign "x" (Number 42)) (Comma (Assign "y" (Compr (ACFor "x" (String "abc") (ACBody (Var "x"))))) (Array [Var "x",Var "y"])))
-  ]
+parseComplexExprTests =
+  testGroup
+    "Complex expr tests"
+    [ testCase "scope.js" $
+      parseString ("x = 42, y = [for (x of 'abc') x],[x, y]") @?=
+      Right
+        (Comma
+           (Assign "x" (Number 42))
+           (Comma
+              (Assign "y" (Compr (ACFor "x" (String "abc") (ACBody (Var "x")))))
+              (Array [Var "x", Var "y"])))
+    , testCase "correct precedence add" $
+      parseString ("[1,2,3,4] + [1,2,3]") @?=
+      Right
+        (Call
+           "+"
+           [ Array [Number 1, Number 2, Number 3, Number 4]
+           , Array [Number 1, Number 2, Number 3]
+           ])
+    , testCase "precedences" $
+      parseString ("1+2*4-3%4") @?=
+      Right
+        (Call
+           "-"
+           [ Call "+" [Number 1, Call "*" [Number 2, Number 4]]
+           , Call "%" [Number 3, Number 4]
+           ])
+    , testCase "arrayCompr complex" $
+      parseString
+        ("[for (a of 4) 1] * [for (a of abc) if (true) if (false) 2*3]") @=?
+      Right
+        (Call
+           "*"
+           [ Compr (ACFor "a" (Number 4) (ACBody (Number 1)))
+           , Compr
+               (ACFor
+                  "a"
+                  (Var "abc")
+                  (ACIf
+                     TrueConst
+                     (ACIf FalseConst (ACBody (Call "*" [Number 2, Number 3])))))
+           ])
+    ]
 
 predefinedTests :: TestTree
 predefinedTests =
