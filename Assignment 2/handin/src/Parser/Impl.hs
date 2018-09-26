@@ -4,15 +4,21 @@ module Parser.Impl where
 -- in other files in the Parser/ subdirectory)
 
 import           SubsAst
-import           Text.Parsec
+import           Text.Parsec hiding (ParseError)
 import           Text.Parsec.String
+-- ord used in isLegalChar to check if char is in printable ASCII range
 import           Data.Char
 
+data ParseError = ParseError String
+                  deriving(Eq, Show)
+
 parseString :: String -> Either ParseError Expr
-parseString s = parse (do
+parseString s = case (parse (do
                         res <- parseLeadingWhitespace parseExpr
                         eof
-                        return res) "ERROR" s
+                        return res) "ERROR" s) of
+                  Left a -> Left (ParseError (show a))
+                  Right b -> Right b
 
 posNumber :: Parser Expr
 posNumber = do
@@ -179,12 +185,14 @@ parseArray = do
                 _ <- parseWhitespace(char ']')
                 return (Array exprs)
 
+-- checks that the char after the backslash is one of the legal possibilites
 isLegalAfterBackslash :: Char -> Either ParseError Char
 isLegalAfterBackslash c | c == 'n' = Right '\n'
                         | c == 't' = Right '\t'
                         | c `elem` ['\'', '\\'] = Right c
                         | otherwise = fail "Backslash followed by invalid char"
 
+-- extracts the char after the \ to return it together with \
 isLegalBackslash :: Parser Char
 isLegalBackslash = do
                     _ <- char '\\'
@@ -193,19 +201,19 @@ isLegalBackslash = do
                       Right a -> return a
                       _ -> fail "Fail in Backslash"
 
-
+-- checks for printable ascii chars and not \' and \\
 isLegalChar :: Char -> Bool
 isLegalChar c | c == '\'' = False
               | c == '\\' = False
               | ord c >= 32 && ord c <= 126 = True
               | otherwise = False
 
+-- option""(try) checks for newline in string to be skipped
+-- then checks for backslashes and legal chars
 parseCharInStr :: Parser Char
 parseCharInStr = do
-                  -- checks for newline in string
                   _ <- option "" (try (string "\\\n"))
                   a <- isLegalBackslash <|> satisfy isLegalChar
-                  -- checks for newline in string
                   _ <- option "" (try (string "\\\n"))
                   return a
 
@@ -214,7 +222,7 @@ parseStr = do
                 _ <- char '\''
                 res <- many parseCharInStr
                 _ <- parseWhitespace(char '\'')
-                return (String res)
+                return (SubsAst.String res)
 
 parseTrue :: Parser Expr
 parseTrue = do
