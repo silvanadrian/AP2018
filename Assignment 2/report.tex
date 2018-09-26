@@ -29,17 +29,21 @@ breaklines}
 
 
 \subsection{Choice of Parser combinator Library}
-We decided to use \textbf{Parsec} because of the better error handling possabilities compared to \textbf{ReadP}.
-
+We decided to use \textbf{Parsec} because of the better error handling capabailities compared to \textbf{ReadP}.
 
 \subsection{Whitespace}
+We decided to remove leading whitespace and trailing whitespace to parse the tokens, this we do by using a function `parseLeadingWhitespace` and `parseWhitespace` which take care ok removing the whitespaces, newlines and other characters which can't be parsed.
 
 \subsection{}
 
 \section{Code Assessment}
 
+We are relatively confident that we
+
 \subsection{Tests}
 
+We wrote overall 68 Tests which either Test more Complex expressions or the very basic functionality of the parser.
+For that we also had to write a `ParserUtils.hs` file which has some utilities for calling the actual functions for testing (like `parseNumber`), for ArrayComprehensions on the other side we used the `parseString` function directly since we walked into the Problem that calling `parseArrayCompr` wasn't possible right away, so we went the easy way and used `parseString`.
 
 \subsection{Test Coverage}
 

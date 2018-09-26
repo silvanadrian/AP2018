@@ -68,9 +68,10 @@ parseStringTests =
     , testCase "String whitespaced" $
       stringParser ("'asdas asdasd'") @?= Right (String "asdas asdasd")
     , testCase "String newline" $
-      stringParser ("'foo \\\n bar'") @?= Right (String "foobar")
+      stringParser ("'foo\\\nbar'") @?= Right (String "foobar")
      , testCase "Not Allowed ASCII character" $
-             show (stringParser ("'ü'")) @?= "Left \"ERROR\" (line 1, column 2):\nunexpected \"\\252\"\nexpecting \"'\""
+             show (stringParser ("'ü'")) @?= "Left \"ERROR\" (line 1, column 2):\nunexpected \"\\252\"\nexpecting \"'\"",
+       testCase "backslash chars" stringParser("\\'\\t\\n\\\\'\\'") @?= Right(String "")
     ]
 
 parseFalseTests :: TestTree
