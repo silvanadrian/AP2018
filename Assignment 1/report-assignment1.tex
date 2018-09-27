@@ -32,6 +32,12 @@ We started by making a helper function for each arithmetic operation from "initi
 We used head and tail in equality, but onlineTA says that we should not use them. We check for empty lists and a list of different length, so we check for possible errors which we found while testing from head and tail.
 In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement.
 
+EDIT RESUBMISSION:
+We proof that our monad instance for SubsM satisfies the monad laws by testing each of the three monad laws individually.
+1. return v >>= f == f v
+2. m >>= (\a -> return a) == m
+3. (m >>= f ) >>= g == m >>= (\a -> (f a >>= g))
+
 We worked our way through the monads, by doing many tests and figuring out what return values where needed. In addition we read a lot of monad introductions and articles and used more than 20 hours just to partly understand this assignment. Also we got help in another TA class.
 In the monad return we knew that we needed the right value of SubsM and worked our way from there. In fail we knew that we needed the left side value (Error).
 For the bind we used the slides from the lecture and the haskell wiki to work our way forward. Underway we did testing to see that we got the right return values.
