@@ -1,0 +1,40 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[english, science, large]{../template/ku-frontpage}
+\usepackage{tabularx}
+\usepackage{ltablex}
+\usepackage{minted}
+\setminted[haskell]{
+frame=lines,
+framesep=2mm,
+baselinestretch=1.1,
+fontsize=\footnotesize,
+linenos,
+breaklines}
+\usemintedstyle{friendly}
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0},
+}
+\begin{document}
+
+\title{Haskell intro}
+\subtitle{Assignment 2}
+
+\author{Kai Arne S. Myklebust, Silvan Adrian}
+\date{Handed in: \today}
+	
+\maketitle
+\tableofcontents
+
+\section{Design/Implementation}
+
+\section{Code Assessment}
+
+\appendix
+\section{Code Listing}
+
+\inputminted{prolog}{src/Test.hs}
+
+
+
+\end{document}}

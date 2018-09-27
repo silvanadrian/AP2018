@@ -9,6 +9,7 @@ module SubsInterpreter
        , sub
        , modulo
        , mkArray
+       , SubsM
        -- You may include additional exports here, if you want to
        -- write unit tests for them.
        )

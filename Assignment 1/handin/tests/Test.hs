@@ -16,7 +16,8 @@ tests = testGroup "tests" [
       subTests,
       moduloTests,
       arrayTests,
-      runExprTests
+      runExprTests,
+      monadLawsTest
     ]
 
 
@@ -192,3 +193,36 @@ scopeExpr =
 
 scopeResult :: Value
 scopeResult = ArrayVal [ IntVal 42, ArrayVal [ StringVal "a", StringVal "b", StringVal "c" ]]
+
+
+-- The 3 Monad Laws
+
+-- 1. return v >>= f == f v
+actual1Law = return (String "a") >>= runExpr
+expected1Law = runExpr $ String "a"
+
+-- 2. m >>= (\a -> return a) == m
+actual2Law :: SubsM Expr
+actual2Law = return (String "a") >>= return
+
+expected2Law :: SubsM Expr
+expected2Law = return $ String "a"
+
+-- 3. (m >>= f) >>= g == m >>= (\a -> (f a >>= g))
+-- function g
+g (StringVal n) = return $ String "a"
+g _ = error "Only StringVal"
+
+actual3Law = (return (String "a") >>= runExpr) >>= g
+expected3Law = return (String "a") >>= (\a -> (runExpr a >>= g))
+
+
+monadLawsTest :: TestTree
+monadLawsTest = testGroup "Monads"
+    [
+        -- first law
+        testCase "first Monad Law" $ actual1Law @?= expected1Law,
+        -- Second Law, can't run since SubsM doesn't derive from Eq
+        -- testCase "second Monad Law" $ actual2Law @?= expected2Law,
+        testCase "third Monad Law" $ actual3Law @?= expected3Law
+    ]
