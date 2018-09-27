@@ -208,10 +208,10 @@ actual2Law = return (String "a") >>= return
 expected2Law :: SubsM Expr
 expected2Law = return $ String "a"
 
--- 3. (m >>= f ) >>= g == m >>= (\a -> (f a >>= g)) (>>=) :: m a -> (a -> m b) -> m b
+-- 3. (m >>= f) >>= g == m >>= (\a -> (f a >>= g))
 -- function g
 g (StringVal n) = return $ String "a"
-g _ = error "Use just IntVal for testing"
+g _ = error "Only StringVal"
 
 actual3Law = (return (String "a") >>= runExpr) >>= g
 expected3Law = return (String "a") >>= (\a -> (runExpr a >>= g))
