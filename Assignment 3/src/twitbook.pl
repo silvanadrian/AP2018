@@ -29,10 +29,24 @@ dislikes(G, X, Y) :-
 
 /* different succeeds whenever X and Y are different members of the network G */
 different(G, X, Y) :-
-    select1(person(X, _), G, G2),
-    select1(person(Y, _), G2, _).
+    select(person(X, _), G, G2),
+    select(person(Y, _), G2, _).
+
+select(X, [X|Tail], Tail).
+select(Elem, [Head|Tail], [Head|Rest]) :-
+    select(Elem, Tail, Rest).
 
 
-select1(X, [X|Tail], Tail).
-select1(Elem, [Head|Tail], [Head|Rest]) :-
-    select1(Elem, Tail, Rest).
+notLikes(G, X, Y) :- 
+            getFriendList(G, X, Xfriends),
+	        isNotElemInFriendList(G, Y, Xfriends).
+
+
+isNotElemInFriendList(_, _, []).
+isNotElemInFriendList(G, X, [Friend|RestFriends]) :- 
+            different(G, X, Friend),
+            isNotElemInFriendList(G, X, RestFriends).               
+
+getFriendList([person(X, FriendList)|_], X, FriendList).
+getFriendList([_|T], X, FriendList) :- getFriendList(T, X, FriendList).            
+
