@@ -45,3 +45,14 @@ isNotFriend(_, _, []).
 
 getFriends([person(X, Friends)|_], X, Friends).
 getFriends([_|T], X, Friends) :- getFriends(T, X, Friends).            
+
+
+/* Level 1 - task c */
+popular(G, X) :-
+    isMember(person(X, Friends), G),
+    allLikingX(G, X, Friends).
+
+allLikingX(_, _, []).
+allLikingX(G, X, [Head | Tail]) :-
+    likes(G, Head, X),
+    allLikingX(G, X, Tail).
