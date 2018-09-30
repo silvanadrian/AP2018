@@ -11,7 +11,8 @@ g1([person(kara, [barry, clark]),
  person(clark, [oliver, kara]),
  person(oliver, [kara])]).
 
-% a
+
+/* */
 likes(G,X,Y) :- 
     isMember(person(X, Friends), G),
     isMember(Y, Friends).
@@ -20,11 +21,13 @@ likes(G,X,Y) :-
 isMember(Head,[Head|_]).
 isMember(Head,[_|Tail]) :- isMember(Head,Tail).
 
-% b - using not which may not be allowed
-% different also not in use
-dislikes(G, X, Y) :-
-    % different(G, X, Y),
-    likes(G, Y, X),
-    not(likes(G, X, Y)).
-    
-% different(G, X, Y) :-
+
+/* different succeeds whenever X and Y are different members of the network G */
+different(G, X, Y) :-
+    select(person(X, _), G, G2),
+    select(person(Y, _), G2, _).
+
+
+select(X, [X|Tail], Tail).
+select(Elem, [Head|Tail], [Head|Rest]) :-
+    select(Elem, Tail, Rest).
