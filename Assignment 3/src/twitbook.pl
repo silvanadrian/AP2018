@@ -21,6 +21,11 @@ likes(G,X,Y) :-
 isMember(Head,[Head|_]).
 isMember(Head,[_|Tail]) :- isMember(Head,Tail).
 
+/* b - using not which may not be allowed */
+dislikes(G, X, Y) :-
+    different(G, X, Y),
+    likes(G, Y, X),
+    not(likes(G, X, Y)).
 
 /* different succeeds whenever X and Y are different members of the network G */
 different(G, X, Y) :-
