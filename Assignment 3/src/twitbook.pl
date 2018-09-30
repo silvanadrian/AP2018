@@ -28,8 +28,8 @@ dislikes(G, X, Y) :-
 
 /* different succeeds whenever X and Y are different members of the network G */
 different(G, X, Y) :-
-    select(person(X, _), G, G2),
-    select(person(Y, _), G2, _).
+    selectList(person(X, _), G, G2),
+    selectList(person(Y, _), G2, _).
 
 selectList(X, [X|Tail], Tail).
 selectList(Elem, [Head|Tail], [Head|Rest]) :-
