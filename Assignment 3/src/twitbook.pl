@@ -11,7 +11,6 @@ g1([person(kara, [barry, clark]),
  person(clark, [oliver, kara]),
  person(oliver, [kara])]).
 
-
 /* */
 likes(G,X,Y) :- 
     isMember(person(X, Friends), G),
@@ -25,28 +24,24 @@ isMember(Head,[_|Tail]) :- isMember(Head,Tail).
 dislikes(G, X, Y) :-
     different(G, X, Y),
     likes(G, Y, X),
-    not(likes(G, X, Y)).
+    notLikes(G, X, Y).
 
 /* different succeeds whenever X and Y are different members of the network G */
 different(G, X, Y) :-
     select(person(X, _), G, G2),
     select(person(Y, _), G2, _).
 
-select(X, [X|Tail], Tail).
-select(Elem, [Head|Tail], [Head|Rest]) :-
+selectList(X, [X|Tail], Tail).
+selectList(Elem, [Head|Tail], [Head|Rest]) :-
     select(Elem, Tail, Rest).
 
 
-notLikes(G, X, Y) :- 
-            getFriendList(G, X, Xfriends),
-	        isNotElemInFriendList(G, Y, Xfriends).
+notLikes(G, X, Y) :- getFriends(G, X, Xfriends),
+        isNotFriend(G, Y, Xfriends).
 
+isNotFriend(_, _, []).
+    isNotFriend(G, X, [Friend|RestFriends]) :- different(G, X, Friend),
+        isNotFriend(G, X, RestFriends).               
 
-isNotElemInFriendList(_, _, []).
-isNotElemInFriendList(G, X, [Friend|RestFriends]) :- 
-            different(G, X, Friend),
-            isNotElemInFriendList(G, X, RestFriends).               
-
-getFriendList([person(X, FriendList)|_], X, FriendList).
-getFriendList([_|T], X, FriendList) :- getFriendList(T, X, FriendList).            
-
+getFriends([person(X, Friends)|_], X, Friends).
+getFriends([_|T], X, Friends) :- getFriends(T, X, Friends).            
