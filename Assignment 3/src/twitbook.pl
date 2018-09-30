@@ -17,5 +17,5 @@ likes(G,X,Y) :-
 	isMember(Y, Friends).
 
 /* Checks if an elem is member of list */
-isMember(X, [X|_]).
-isMember(X, [_|T]) :- isMember(X, T).
+isMember(Head,[Head|_]).
+isMember(Head,[_|Tail]) :- isMember(Head,Tail).
