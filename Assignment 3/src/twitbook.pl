@@ -11,6 +11,11 @@ g1([person(kara, [barry, clark]),
  person(clark, [oliver, kara]),
  person(oliver, [kara])]).
 
-likes(G, X, Y) :-
-    member(person(X,Z), G),
-    member(Y,Z).
+
+likes(G,X,Y) :- 
+	isMember(person(X, Friends), G), 
+	isMember(Y, Friends).
+
+/* Checks if an elem is member of list */
+isMember(X, [X|_]).
+isMember(X, [_|T]) :- isMember(X, T).
