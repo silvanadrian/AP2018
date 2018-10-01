@@ -46,12 +46,20 @@ test_popular :-
     \+ popular(H, superman),
     write('Popular tests'), nl.
 
+test_outcast :-
+    g1(G), g2(H),
+    outcast(G, bruce),
+    \+ outcast(G, kara),
+    outcast(H, batman),
+    \+ outcast(H, supergirl),
+    write('Outcast tests'), nl.
 
 test_all :-
     write('Start with tests'), nl,
     test_likes,
     test_dislikes,
     test_popular,
+    test_outcast,
     write('All tests have been run'), nl.
 
 :- end_tests(twitbook).
