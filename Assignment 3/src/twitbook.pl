@@ -84,7 +84,7 @@ checkFriendliness([person(_, Friends)|Tail], G, X) :-
     isNotFriend(G, X, Friends),
     checkFriendliness(Tail, G, X).
 
-% Task e
+% Task f
 hostile(G, X) :-
     isMember(person(X, _), G),
     checkHostileness(G, G, X).
