@@ -56,3 +56,16 @@ allLikingX(_, _, []).
 allLikingX(G, X, [Head | Tail]) :-
     likes(G, Head, X),
     allLikingX(G, X, Tail).
+
+outcast(G, X) :-
+    isMember(person(X, Friends), G),
+    allDislikeX(G, X, Friends).
+
+allDislikeX(_, _, []).
+allDislikeX(G, X, [Head | Tail]) :-
+    dislikes(G, Head, X),
+    allDislikeX(G, X, Tail).
+
+
+
+
