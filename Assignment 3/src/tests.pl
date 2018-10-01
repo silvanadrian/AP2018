@@ -36,10 +36,22 @@ test_dislikes :-
     \+ dislikes(H, supergirl, superman),
     write('Dislikes tests'), nl.
 
+test_popular :-
+    g1(G), g2(H),
+    popular(G, kara),
+    \+ popular(G, clark),
+    \+ popular(G, bruce),
+    popular(H, supergirl),
+    \+ popular(H, batman),
+    \+ popular(H, superman),
+    write('Popular tests'), nl.
+
+
 test_all :-
     write('Start with tests'), nl,
     test_likes,
     test_dislikes,
+    test_popular,
     write('All tests have been run'), nl.
 
 :- end_tests(twitbook).
