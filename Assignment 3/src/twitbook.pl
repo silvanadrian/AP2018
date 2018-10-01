@@ -48,7 +48,7 @@ getFriends([person(X, Friends)|_], X, Friends).
 getFriends([_|T], X, Friends) :- getFriends(T, X, Friends).            
 
 
-/* Level 1 - task c */
+% Level 1 - Task c
 popular(G, X) :-
     isMember(person(X, Friends), G),
     allLikingX(G, X, Friends).
@@ -58,6 +58,7 @@ allLikingX(G, X, [Head | Tail]) :-
     likes(G, Head, X),
     allLikingX(G, X, Tail).
 
+% Task d
 outcast(G, X) :-
     isMember(person(X, Friends), G),
     allDislikeX(G, X, Friends).
@@ -67,6 +68,7 @@ allDislikeX(G, X, [Head | Tail]) :-
     dislikes(G, Head, X),
     allDislikeX(G, X, Tail).
 
+% Task e
 friendly(G, X) :-
     isMember(person(X, _), G),
     checkFriendliness(G, G, X).
@@ -82,6 +84,7 @@ checkFriendliness([person(_, Friends)|Tail], G, X) :-
     isNotFriend(G, X, Friends),
     checkFriendliness(Tail, G, X).
 
+% Task e
 hostile(G, X) :-
     isMember(person(X, _), G),
     checkHostileness(G, G, X).
