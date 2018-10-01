@@ -71,7 +71,6 @@ friendly(G, X) :-
     isMember(person(X, _), G),
     checkFriendliness(G, G, X).
 
-% Namen andern
 checkFriendliness([], _, _).
 checkFriendliness([person(Name, _)|Tail], G, Name) :-
     checkFriendliness(Tail, G, Name).
@@ -83,5 +82,17 @@ checkFriendliness([person(_, Friends)|Tail], G, X) :-
     isNotFriend(G, X, Friends),
     checkFriendliness(Tail, G, X).
 
+hostile(G, X) :-
+    isMember(person(X, _), G),
+    checkHostileness(G, G, X).
 
-
+checkHostileness([], _, _).
+checkHostileness([person(Name, _)|Tail], G, Name) :-
+    checkHostileness(Tail, G, Name).
+checkHostileness([person(Name, _)|Tail], G, X) :-
+    likes(G, Name, X),
+    dislikes(G, X, Name),
+    checkHostileness(Tail, G, X).
+checkHostileness([person(_, Friends)|Tail], G, X) :-
+    isNotFriend(G, X, Friends),
+    checkHostileness(Tail, G, X).
