@@ -40,8 +40,9 @@ notLikes(G, X, Y) :- getFriends(G, X, Xfriends),
         isNotFriend(G, Y, Xfriends).
 
 isNotFriend(_, _, []).
-    isNotFriend(G, X, [Friend|RestFriends]) :- different(G, X, Friend),
-        isNotFriend(G, X, RestFriends).               
+isNotFriend(G, X, [Friend|RestFriends]) :- 
+    different(G, X, Friend),
+    isNotFriend(G, X, RestFriends).               
 
 getFriends([person(X, Friends)|_], X, Friends).
 getFriends([_|T], X, Friends) :- getFriends(T, X, Friends).            
@@ -66,6 +67,21 @@ allDislikeX(G, X, [Head | Tail]) :-
     dislikes(G, Head, X),
     allDislikeX(G, X, Tail).
 
+friendly(G, X) :-
+    isMember(person(X, _), G),
+    checkFriendliness(G, G, X).
+
+% Namen andern
+checkFriendliness([], _, _).
+checkFriendliness([person(Name, _)|Tail], G, Name) :-
+    checkFriendliness(Tail, G, Name).
+checkFriendliness([person(Name, _)|Tail], G, X) :-
+    likes(G, Name, X),
+    likes(G, X, Name),
+    checkFriendliness(Tail, G, X).
+checkFriendliness([person(_, Friends)|Tail], G, X) :-
+    isNotFriend(G, X, Friends),
+    checkFriendliness(Tail, G, X).
 
 
 
