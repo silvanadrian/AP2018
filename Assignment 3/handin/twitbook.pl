@@ -134,8 +134,31 @@ checkAdmires(G, X, Y, List) :-
     checkAdmires(G, Z, Y, [Z|List]).
     
 % Task h
-% indifferent(G, X, Y) :-
+indifferent(G, X, Y) :- 
+    different(G, X, Y),
+    getAdmirers(G, [], [X], Admirers), 
+    isNotFriend(G, Y, Admirers).
 
+getAdmirers(_, AdmiresList, [], AdmiresList).
+getAdmirers(Original, AdmiresList, [ToCheck|ToBeChecked], L) :-
+	getFriends(Original, ToCheck, ToCheckFriends),
+	appendlist(AdmiresList, ToBeChecked, CurrentAdmires),
+	rmSublist(Original, CurrentAdmires, ToCheckFriends, NewFriendsToBeChecked),
+	appendlist(ToBeChecked, NewFriendsToBeChecked, NewToBeChecked),
+	appendlist(AdmiresList, [ToCheck], NewCheckedFriends),
+	getAdmirers(Original, NewCheckedFriends, NewToBeChecked, L).
+
+appendlist([], X, X).
+appendlist([T|H], X, [T|L]) :- 
+    appendlist(H, X, L).
+
+rmSublist(_, _, [], []).
+rmSublist(Original, Y, [X|W], Z):- 
+    isMember(X, Y), 
+    rmSublist(Original, Y, W, Z).
+rmSublist(Original, Y, [X|W], [X|Z]) :- 
+    isNotFriend(Original, X, Y), 
+    rmSublist(Original, Y, W, Z).
 
 % Level 3
 % Task i
