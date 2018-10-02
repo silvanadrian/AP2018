@@ -16,8 +16,8 @@ breaklines}
 }
 \begin{document}
 
-\title{Haskell intro}
-\subtitle{Assignment1}
+\title{A SubScript Interpreter}
+\subtitle{Assignment 1}
 
 \author{Kai Arne S. Myklebust, Silvan Adrian}
 \date{Handed in: \today}
@@ -34,9 +34,9 @@ In evalExpr we used the do notation to make it more readable when we have multip
 \textbf{EDIT RESUBMISSION:}
 We proof that our monad instance for SubsM satisfies the monad laws by testing each of the three monad laws individually.
 \begin{itemize}
-	\item $return v >>= f == f v$
-	\item $m >>= (\\a -> return a) == m$
-	\item $(m >>= f ) >>= g == m >>= (\\a -> (f a >>= g))$
+	\item return v $>>=$ f == f v
+	\item m $>>=$ (\textbackslash a -$>$ return a) == m
+	\item (m $>>=$ f ) $>>=$ g == m $>>=$ (\textbackslash a -$>$ (f a $>>=$ g))
 \end{itemize}
 
 We worked our way through the monads, by doing many tests and figuring out what return values where needed. In addition we read a lot of monad introductions and articles and used more than 20 hours just to partly understand this assignment. Also we got help in another TA class.
