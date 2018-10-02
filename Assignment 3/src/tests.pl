@@ -54,12 +54,27 @@ test_outcast :-
     \+ outcast(H, supergirl),
     write('Outcast tests'), nl.
 
+test_admires :-
+    g1(G), g2(H),
+    admires(G, bruce, kara),
+    admires(G, bruce, barry),
+    admires(G, bruce, clark),
+    \+ admires(G, barry, bruce),
+    \+ admires(G, kara, bruce),
+    admires(H, batman, supergirl),
+    admires(H, batman, flash),
+    admires(H, batman, superman),
+    \+ admires(H, flash, batman),
+    \+ admires(H, supergirl, batman),
+    write('Admires tests'), nl.   
+
 test_all :-
     write('Start with tests'), nl,
     test_likes,
     test_dislikes,
     test_popular,
     test_outcast,
+    test_admires,
     write('All tests have been run'), nl.
 
 :- end_tests(twitbook).
