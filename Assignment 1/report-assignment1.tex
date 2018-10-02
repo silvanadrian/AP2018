@@ -30,13 +30,14 @@ breaklines}
 Overall in this assignment our goal was to not use helper functions, where not specificaly needed. This to make readability easier and making the code less complex since many of our helper functions from the previous assignment were unnecessary.
 We started by making a helper function for each arithmetic operation from "initial context". This was to get the first and second element from the list. After a while we got really annoyed doing that and found out that you can just get the first and second element by changing to [] list-brackets.
 We used head and tail in equality, but onlineTA says that we should not use them. We check for empty lists and a list of different length, so we check for possible errors which we found while testing from head and tail.
-In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement.
-
-EDIT RESUBMISSION:
+In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement.\\\\
+\textbf{EDIT RESUBMISSION:}
 We proof that our monad instance for SubsM satisfies the monad laws by testing each of the three monad laws individually.
-1. return v >>= f == f v
-2. m >>= (\a -> return a) == m
-3. (m >>= f ) >>= g == m >>= (\a -> (f a >>= g))
+\begin{itemize}
+	\item $return v >>= f == f v$
+	\item $m >>= (\\a -> return a) == m$
+	\item $(m >>= f ) >>= g == m >>= (\\a -> (f a >>= g))$
+\end{itemize}
 
 We worked our way through the monads, by doing many tests and figuring out what return values where needed. In addition we read a lot of monad introductions and articles and used more than 20 hours just to partly understand this assignment. Also we got help in another TA class.
 In the monad return we knew that we needed the right value of SubsM and worked our way from there. In fail we knew that we needed the left side value (Error).
