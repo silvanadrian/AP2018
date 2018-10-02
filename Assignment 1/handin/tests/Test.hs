@@ -222,7 +222,7 @@ monadLawsTest = testGroup "Monads"
     [
         -- first law
         testCase "first Monad Law" $ actual1Law @?= expected1Law,
-        -- Second Law, can't run since SubsM doesn't derive from Eq
+        -- Second Law, can't run since can't check equality
         -- testCase "second Monad Law" $ actual2Law @?= expected2Law,
         testCase "third Monad Law" $ actual3Law @?= expected3Law
     ]
