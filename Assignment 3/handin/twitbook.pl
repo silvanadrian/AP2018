@@ -43,14 +43,10 @@ different(G, X, Y) :-
     selectList(person(X, _), G, G2),
     selectList(person(Y, _), G2, _).
 
-/*
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-select?
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-*/
+/* */
 selectList(X, [X|Tail], Tail).
 selectList(Elem, [Head|Tail], [Head|Rest]) :-
-    select(Elem, Tail, Rest).
+    selectList(Elem, Tail, Rest).
 
 notLikes(G, X, Y) :- 
     getFriends(G, X, Xfriends),
