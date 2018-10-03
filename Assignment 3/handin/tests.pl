@@ -78,6 +78,26 @@ test_indifferent :-
     \+ indifferent(H, batman, superman),
     write('Indifferent tests'), nl.
 
+a1([(kara,supergirl),(bruce,batman),(barry,flash),(clark,superman),(oliver,green_arrow)]).
+
+test_same_world1 :-
+    g1(G), g2(H),
+    same_world(G,H,A),
+    member((kara,supergirl), A),
+    write('Same world tests 1'), nl.
+
+test_same_world2 :-
+    g1(G), g2(H),
+    same_world(H,G,A),
+    member((batman, bruce), A),
+    write('Same world tests 2'), nl.
+
+test_same_world3 :-
+    g1(G),
+    same_world(G,G,A),
+    member((clark, clark), A),
+    write('Same world tests 3'), nl.
+
 test_all :-
     write('Start with tests'), nl,
     test_likes,
@@ -86,6 +106,9 @@ test_all :-
     test_outcast,
     test_admires,
     test_indifferent,
+    test_same_world1,
+    test_same_world2,
+    test_same_world3,
     write('All tests have been run'), nl.
 
 :- end_tests(twitbook).
