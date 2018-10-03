@@ -23,21 +23,12 @@ a([p(kara,supergirl),
     p(clark,superman), 
     p(oliver,green_arrow)]).
 
-% Task a
-likes(G,X,Y) :- 
-    isMember(person(X, Friends), G),
-    isMember(Y, Friends).
+% Helpers 
 
 /* Checks if an elem is member of list */
 isMember(Head,[Head|_]).
 isMember(Head,[_|Tail]) :- 
     isMember(Head,Tail).
-
-% Task b
-dislikes(G, X, Y) :-
-    different(G, X, Y),
-    likes(G, Y, X),
-    notLikes(G, X, Y).
 
 /* different succeeds whenever X and Y are different members of the network G */
 different(G, X, Y) :-
@@ -49,6 +40,21 @@ selectList(X, [X|Tail], Tail).
 selectList(Elem, [Head|Tail], [Head|Rest]) :-
     selectList(Elem, Tail, Rest).
 
+/* Gets the friends list from a person */
+getFriends([person(X, Friends)|_], X, Friends).
+getFriends([_|T], X, Friends) :- getFriends(T, X, Friends).
+
+% Task a
+likes(G,X,Y) :- 
+    getFriends(G, X, Friends),
+    isMember(Y, Friends).
+
+% Task b
+dislikes(G, X, Y) :-
+    different(G, X, Y),
+    likes(G, Y, X),
+    notLikes(G, X, Y).
+
 notLikes(G, X, Y) :- 
     getFriends(G, X, Xfriends),
     isNotFriend(G, Y, Xfriends).
@@ -56,15 +62,16 @@ notLikes(G, X, Y) :-
 isNotFriend(_, _, []).
 isNotFriend(G, X, [Friend|RestFriends]) :- 
     different(G, X, Friend),
-    isNotFriend(G, X, RestFriends).               
+    isNotFriend(G, X, RestFriends).   
 
-getFriends([person(X, Friends)|_], X, Friends).
-getFriends([_|T], X, Friends) :- getFriends(T, X, Friends).            
+equal(X,X).
+
+% Helpers end         
 
 % Level 1
 % Task c
 popular(G, X) :-
-    isMember(person(X, Friends), G),
+    getFriends(G, X, Friends),
     allLikingX(G, X, Friends).
 
 allLikingX(_, _, []).
@@ -74,7 +81,7 @@ allLikingX(G, X, [Head | Tail]) :-
 
 % Task d
 outcast(G, X) :-
-    isMember(person(X, Friends), G),
+    getFriends(G, X, Friends),
     allDislikeX(G, X, Friends).
 
 allDislikeX(_, _, []).
@@ -129,7 +136,6 @@ admires(G, X, Y) :-
 % check first for direct like, else check like-chain with list of all likes
 checkAdmires(G, X, Y, _) :- likes(G, X, Y).
 checkAdmires(G, X, Y, List) :-
-    % notLikes(G, X, Y),
     likes(G, X, Z),
     isNotFriend(G, Z, List), % checks that there is no loop
     checkAdmires(G, Z, Y, [Z|List]).
@@ -170,16 +176,18 @@ same_world(G, H, A) :-
     genA(Gnames, Hnames, A),
     testA(G, H, A).
 
+% generates the A list
 genA([], _, []).
 genA([GHead|GTail], Hnames, [(GHead,N)|A]) :-
     selectList(N, Hnames, HnamesNew),
     genA(GTail, HnamesNew, A).
 
+% checks that the A list works together with G and H
 testA([], _, _).
 testA([GHead|GTail], H, A) :-
     equal(GHead, person(Name1, Friends1)),
     isMember((Name1, Name2), A),
-    isMember(person(Name2, Friends2), H),
+    getFriends(H, Name2, Friends2),
     sameNumberOfNames(Friends1, Friends2),
     sameFriends(Friends1, Friends2, A),
     testA(GTail, H, A).
@@ -199,7 +207,3 @@ getNames([], []).
 getNames([Head|Tail], [X|L]) :-
     equal(Head, person(X,_)),
     getNames(Tail, L).
-
-equal(X,X).
-
-

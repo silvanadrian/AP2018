@@ -28,14 +28,16 @@ breaklines}
 
 \section{Design/Implementation}
 
-We implemented all needed predicates by not using the Prolog out of predicates, which we were restricted to use.
-So we had to implement predicates for select or not ourselves.
+We implemented all needed predicates by not using any built-in Prolog predicates or control operators, which we were restricted to use.
+So we had to implement predicates for select and not ourselves. In addition we defined other helper predicates to solve the tasks.
 
 \section{Code Assessment}
 We wrote Tests for testing all the defined predicates, which test either negative or positive responses of them.
 Also we used 2 different Lists to be able to test the predicates on 2 Lists.
 
 OnlineTA also returned no errors by testing out our predicates.
+
+We needed to implement a lot of new helper predicates. We tried to give them good names and place them after they were used, but sometimes it could get a little bit confusing what does what and where everything is defined.
 
 \appendix
 \section{Code Listing}
