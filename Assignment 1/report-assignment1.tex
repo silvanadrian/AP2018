@@ -33,6 +33,7 @@ We used head and tail in equality, but onlineTA says that we should not use them
 In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement.\\\\
 \textbf{EDIT RESUBMISSION:}
 We proof that our monad instance for SubsM satisfies the monad laws by testing each of the three monad laws individually.
+For the second Law we wrote a Test which we can't test for equality therefore the test is commented out (see comment in Test.hs) but we were able to reproduce that we got the same result back by running it in ghci.
 \begin{itemize}
 	\item return v $>>=$ f == f v
 	\item m $>>=$ (\textbackslash a -$>$ return a) == m
@@ -48,7 +49,7 @@ According to our own tests and onlineTa, everything except array compression wor
 Array compression was the hardest part and is only partly working. ACFor only works for arrays with numbers. If you have a String it sees the string as only one element and not multiple characters. ACFor does not work with nested for's. We weren't able to make nested for's working. We use putVar and know that it works. So the ACFor can see the variable, but one problem is that only the body should see the variable but now the whole ACFor sees the new variable.
 In ACIf we have the problem when the if clause evaluates to false it has to return a ´Value´, but the assignment says it should return nothing. IF ACIf is inside a ACFor our solution does not work, but if there's a single ACIf then it works.
 
-We ran our own tests to show these failures. These can be run by ´stack test´ (the last 6 out of 84 tests fail, which we also described in the assessment above). 
+We ran our own tests to show these failures. These can be run by ´stack test´ (the 6 out of 86 tests fail, which we also described in the assessment above). 
 
 One place where our test cases were able to help us find errors was in equality and having arrays of different lengths. We fixed it by checking for empty arrays and for different array lengths then  we return a FalseVal.
 
