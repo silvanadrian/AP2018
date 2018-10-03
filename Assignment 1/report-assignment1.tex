@@ -33,7 +33,7 @@ We used head and tail in equality, but onlineTA says that we should not use them
 In evalExpr we used the do notation to make it more readable when we have multiple actions in the same statement.\\\\
 \textbf{EDIT RESUBMISSION:}
 We proof that our monad instance for SubsM satisfies the monad laws by testing each of the three monad laws individually.
-For the second Law we wrote a Test which we can't test for equality therefore the test is commented out (see comment in Test.hs) but we were able to reproduce that we got the same result back by running it in ghci.
+For the second Law we wrote a Test which we can't test for equality therefore the test is commented out (see comment in Test.hs) but we were able get the same result back by running it in ghci.
 \begin{itemize}
 	\item return v $>>=$ f == f v
 	\item m $>>=$ (\textbackslash a -$>$ return a) == m
