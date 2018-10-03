@@ -5,18 +5,6 @@
 
 */
 
-g1([person(kara, [barry, clark]),
-    person(bruce, [clark, oliver]),
-    person(barry, [kara, oliver]),
-    person(clark, [oliver, kara]),
-    person(oliver, [kara])]).
-
-g2([person(batman, [green_arrow, superman]),
-    person(green_arrow, [supergirl]),
-    person(supergirl, [flash, superman]),
-    person(flash, [green_arrow, supergirl]),
-    person(superman, [green_arrow, supergirl])]).
-
 % Helpers 
 
 /* Checks if an elem is member of list */
@@ -38,6 +26,8 @@ selectList(Elem, [Head|Tail], [Head|Rest]) :-
 getFriends([person(X, Friends)|_], X, Friends).
 getFriends([_|T], X, Friends) :- getFriends(T, X, Friends).
 
+% Helpers end   
+
 % Task a
 likes(G,X,Y) :- 
     getFriends(G, X, Friends),
@@ -57,11 +47,7 @@ isNotFriend(_, _, []).
 isNotFriend(G, X, [Friend|RestFriends]) :- 
     different(G, X, Friend),
     isNotFriend(G, X, RestFriends).   
-
-equal(X,X).
-
-% Helpers end         
-
+      
 % Level 1
 % Task c
 popular(G, X) :-
@@ -201,3 +187,5 @@ getNames([], []).
 getNames([Head|Tail], [X|L]) :-
     equal(Head, person(X,_)),
     getNames(Tail, L).
+
+equal(X,X).

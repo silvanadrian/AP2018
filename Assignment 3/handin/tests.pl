@@ -76,22 +76,36 @@ test_indifferent :-
     \+ indifferent(H, batman, superman),
     write('Indifferent tests'), nl.
 
+a1([p(kara,supergirl), 
+    p(bruce,batman), 
+    p(barry,flash), 
+    p(clark,superman), 
+    p(oliver,green_arrow)]).
+
+a2([p(batman,bruce), 
+    p(green_arrow,oliver),
+    p(supergirl,kara), 
+    p(flash,barry), 
+    p(superman,clark)]).
+
 test_same_world1 :-
-    g1(G), g2(H),
+    g1(G), g2(H), a1(A1),
     same_world(G,H,A),
-    member((kara,supergirl), A),
+    member(p(kara,supergirl), A),
+    equal(A1,A),
     write('Same world tests 1'), nl.
 
 test_same_world2 :-
-    g1(G), g2(H),
+    g1(G), g2(H), a2(A1),
     same_world(H,G,A),
-    member((batman, bruce), A),
+    member(p(batman, bruce), A),
+    equal(A1,A),
     write('Same world tests 2'), nl.
 
 test_same_world3 :-
     g1(G),
     same_world(G,G,A),
-    member((clark, clark), A),
+    member(p(clark, clark), A),
     write('Same world tests 3'), nl.
 
 test_all :-
