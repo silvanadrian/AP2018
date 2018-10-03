@@ -30,7 +30,8 @@ likes(G,X,Y) :-
 
 /* Checks if an elem is member of list */
 isMember(Head,[Head|_]).
-isMember(Head,[_|Tail]) :- isMember(Head,Tail).
+isMember(Head,[_|Tail]) :- 
+    isMember(Head,Tail).
 
 % Task b
 dislikes(G, X, Y) :-
@@ -43,7 +44,7 @@ different(G, X, Y) :-
     selectList(person(X, _), G, G2),
     selectList(person(Y, _), G2, _).
 
-/* */
+/* extracts X from a list */
 selectList(X, [X|Tail], Tail).
 selectList(Elem, [Head|Tail], [Head|Rest]) :-
     selectList(Elem, Tail, Rest).
@@ -162,4 +163,43 @@ rmSublist(Original, Y, [X|W], [X|Z]) :-
 
 % Level 3
 % Task i
-% same_world(G, H, A) :-
+same_world(G, H, A) :-
+    sameNumberOfNames(G, H),
+    getNames(G, Gnames),
+    getNames(H, Hnames),
+    genA(Gnames, Hnames, A),
+    testA(G, H, A).
+
+genA([], _, []).
+genA([GHead|GTail], Hnames, [(GHead,N)|A]) :-
+    selectList(N, Hnames, HnamesNew),
+    genA(GTail, HnamesNew, A).
+
+testA([], _, _).
+testA([GHead|GTail], H, A) :-
+    equal(GHead, person(Name1, Friends1)),
+    isMember((Name1, Name2), A),
+    isMember(person(Name2, Friends2), H),
+    sameNumberOfNames(Friends1, Friends2),
+    sameFriends(Friends1, Friends2, A),
+    testA(GTail, H, A).
+
+sameFriends([], _, _).
+sameFriends([Name1|Tail], Friends2, A) :-
+    isMember((Name1, Name2), A),
+    isMember(Name2, Friends2),
+    sameFriends(Tail, Friends2, A).
+
+% check to see if we have the same number of people in G and H
+sameNumberOfNames([], []).
+sameNumberOfNames([_|GTail], [_|HTail]) :-
+    sameNumberOfNames(GTail, HTail).
+
+getNames([], []).
+getNames([Head|Tail], [X|L]) :-
+    equal(Head, person(X,_)),
+    getNames(Tail, L).
+
+equal(X,X).
+
+
