@@ -66,7 +66,17 @@ test_admires :-
     admires(H, batman, superman),
     \+ admires(H, flash, batman),
     \+ admires(H, supergirl, batman),
-    write('Admires tests'), nl.   
+    write('Admires tests'), nl.
+
+test_indifferent :-
+    g1(G), g2(H),
+    indifferent(G, kara, bruce),
+    indifferent(G, clark, bruce),
+    \+ indifferent(G, bruce, kara),
+    indifferent(H, green_arrow, batman),
+    indifferent(H, flash, batman),
+    \+ indifferent(H, batman, superman),
+    write('Indifferent tests'), nl.
 
 test_all :-
     write('Start with tests'), nl,
@@ -75,6 +85,7 @@ test_all :-
     test_popular,
     test_outcast,
     test_admires,
+    test_indifferent,
     write('All tests have been run'), nl.
 
 :- end_tests(twitbook).
