@@ -5,6 +5,18 @@
 
 */
 
+g1([person(kara, [barry, clark]),
+    person(bruce, [clark, oliver]),
+    person(barry, [kara, oliver]),
+    person(clark, [oliver, kara]),
+    person(oliver, [kara])]).
+
+g2([person(batman, [green_arrow, superman]),
+    person(green_arrow, [supergirl]),
+    person(supergirl, [flash, superman]),
+    person(flash, [green_arrow, supergirl]),
+    person(superman, [green_arrow, supergirl])]).
+
 % Helpers 
 
 /* Checks if an elem is member of list */
@@ -160,7 +172,7 @@ same_world(G, H, A) :-
 
 % generates the A list
 genA([], _, []).
-genA([GHead|GTail], Hnames, [(GHead,N)|A]) :-
+genA([GHead|GTail], Hnames, [p(GHead,N)|A]) :-
     selectList(N, Hnames, HnamesNew),
     genA(GTail, HnamesNew, A).
 
@@ -168,7 +180,7 @@ genA([GHead|GTail], Hnames, [(GHead,N)|A]) :-
 testA([], _, _).
 testA([GHead|GTail], H, A) :-
     equal(GHead, person(Name1, Friends1)),
-    isMember((Name1, Name2), A),
+    isMember(p(Name1, Name2), A),
     getFriends(H, Name2, Friends2),
     sameNumberOfNames(Friends1, Friends2),
     sameFriends(Friends1, Friends2, A),
@@ -176,7 +188,7 @@ testA([GHead|GTail], H, A) :-
 
 sameFriends([], _, _).
 sameFriends([Name1|Tail], Friends2, A) :-
-    isMember((Name1, Name2), A),
+    isMember(p(Name1, Name2), A),
     isMember(Name2, Friends2),
     sameFriends(Tail, Friends2, A).
 
