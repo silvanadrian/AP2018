@@ -16,6 +16,12 @@ g2([person(batman, [green_arrow, superman]),
     person(flash, [green_arrow, supergirl]),
     person(superman, [green_arrow, supergirl])]).
 
+g3([person(batman, [green_arrow, superman]),
+    person(green_arrow, [supergirl, batman]),
+    person(supergirl, [flash, superman]),
+    person(flash, [green_arrow, supergirl]),
+    person(superman, [green_arrow, supergirl])]).
+
 test_likes :-
     g1(G), g2(H),
     likes(G, kara, clark),
@@ -108,6 +114,11 @@ test_same_world3 :-
     member(p(clark, clark), A),
     write('Same world tests 3'), nl.
 
+test_same_world4 :-
+    g1(G),g3(H),
+    \+ same_world(G,H,_),
+    write('Same world tests 4'), nl.
+
 test_all :-
     write('Start with tests'), nl,
     test_likes,
@@ -119,4 +130,5 @@ test_all :-
     test_same_world1,
     test_same_world2,
     test_same_world3,
+    test_same_world4,
     write('All tests have been run'), nl.
