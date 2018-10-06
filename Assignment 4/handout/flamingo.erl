@@ -9,17 +9,24 @@ new(Global) ->
      end.
 
 request(Flamingo, Request, From, Ref) ->
-    Flamingo ! {From, Request, Ref}.
+    Flamingo ! {From, request, Request, Ref}.
 
-route(_Flamingo, _Path, _Fun, _Arg) ->
-    nope.
+route(Flamingo, Path, Fun, Arg) ->
+    Flamingo ! {self(), routes, Path, Fun, Arg},
+    receive
+        {Path, Fun, Arg} -> {ok, 1}
+    end.
+
 
 drop_group(_Flamingo, _Id) ->
     not_implemented.
 
 loop(Requests) ->
     receive
-        {From, Request, Ref} ->
+        {From, request, Request, Ref} ->
             From ! {Ref, Request},
+            loop(Requests);
+         {From, routes, Path, Fun, Arg} ->
+             From ! {Path, Fun, Arg},
             loop(Requests)
     end.
