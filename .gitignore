@@ -1,6 +1,7 @@
 # Mac Ignore DS_Store Files
 .DS_Store
 
+*.iml
 .idea/
 
 .texpadtmp/
