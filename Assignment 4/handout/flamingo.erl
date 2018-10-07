@@ -26,8 +26,10 @@ loop(Routes) ->
         {From, request, Request, Ref} ->
             From ! {Ref, Request},
             loop(Routes);
-         {From, routes, Path, Fun, Arg} ->
-            maps:put(lists:nth(1, Path), Fun, Routes),
-            From ! {Routes},
-            loop(Routes)
+        {From, routes, Path, Fun, Arg} ->
+            L = [{X,Fun} || X <- Path],
+            NewRoutes = maps:from_list(L),
+            %% maps:put(lists:nth(1, Path), Fun, Routes),
+            From ! {NewRoutes},
+            loop(NewRoutes)
     end.
