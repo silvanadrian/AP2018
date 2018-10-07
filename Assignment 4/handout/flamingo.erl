@@ -3,7 +3,7 @@
 -export([new/1, request/4, route/4, drop_group/2]).
 
 new(Global) ->
-     try ({ok, spawn(fun() -> loop(#{}) end)})
+     try ({ok, spawn(fun() -> loop(Global, #{}) end)})
      catch
         _:Error -> {error, Error}
      end.
@@ -21,15 +21,17 @@ route(Flamingo, Path, Fun, Arg) ->
 drop_group(_Flamingo, _Id) ->
     not_implemented.
 
-loop(Routes) ->
+loop(Global,Routes) ->
     receive
-        {From, request, Request, Ref} ->
-            From ! {Ref, Request},
-            loop(Routes);
+        {From, request, {Path, Request}, Ref} ->
+          case maps:is_key(Path, Routes) of
+            true -> F = maps:get(Path, Routes),
+                    From ! {Ref, F({Path, Request}, Global, Ref)}
+          end,
+          loop(Global,Routes);
         {From, routes, Path, Fun, Arg} ->
             L = [{X,Fun} || X <- Path],
-            NewRoutes = maps:from_list(L),
-            %% maps:put(lists:nth(1, Path), Fun, Routes),
+            NewRoutes = maps:merge(Routes, maps:from_list(L)),
             From ! {NewRoutes},
-            loop(NewRoutes)
+            loop(Global,NewRoutes)
     end.
