@@ -14,7 +14,7 @@ request(Flamingo, Request, From, Ref) ->
 route(Flamingo, Path, Fun, Arg) ->
   Flamingo ! {self(), routes, Path, Fun, Arg},
   receive
-    {Routes} -> {ok, Routes}
+    Flamingo -> {ok, make_ref()}
   end.
 
 
@@ -26,12 +26,13 @@ loop(Global, Routes) ->
     {From, request, {Path, Request}, Ref} ->
       case maps:is_key(Path, Routes) of
         true -> F = maps:get(Path, Routes),
-          From ! {Ref, F({Path, Request}, Global, Ref)}
+          Content  = F({Path, Request}, Global, Ref),
+          From ! {Ref, {200, Content}}
       end,
       loop(Global, Routes);
     {From, routes, Path, Fun, Arg} ->
       L = [{X, Fun} || X <- Path],
       NewRoutes = maps:merge(Routes, maps:from_list(L)),
-      From ! {NewRoutes},
+      From ! self(),
       loop(Global, NewRoutes)
   end.
