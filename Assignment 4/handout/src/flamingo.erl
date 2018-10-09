@@ -14,16 +14,20 @@ request(Flamingo, Request, From, Ref) ->
 route(Flamingo, Path, Fun, Arg) ->
   Flamingo ! {self(), routes, Path, Fun, Arg},
   receive
-    Flamingo -> {ok, make_ref()}
+    Flamingo2 -> {ok, Flamingo2}
   end.
 
 
 drop_group(_Flamingo, _Id) ->
   not_implemented.
 
+% RouteGroup = {[Paths], Fun, Arg}
 loop(Global, RouteGroup) ->
   receive
     {From, request, {Path, Request}, Ref} ->
+      F = getFuns(Path, RouteGroup),
+
+
       case maps:is_key(Path, RouteGroup) of
         true -> F = maps:get(Path, RouteGroup),
           Content  = F({Path, Request}, Global, Ref),
@@ -32,20 +36,34 @@ loop(Global, RouteGroup) ->
       loop(Global, RouteGroup);
     {From, routes, Path, Fun, Arg} ->
       NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroup),
-      From ! self(),
+      From ! NewRoutes,
       loop(Global, NewRoutes)
   end.
 
-% RouteGroup = {[Paths], Fun, Arg}
+getFuns(Path, RouteGroup) ->
+  L = .
 
+getFun(Path, PathGroup) ->
+  
+
+% adds the new Path, Action and arguments to the routing group
 updateRouteGroups(Path, Fun, Arg, OldGroup) ->
   [{Path, Fun, Arg} | updateOldGroup(Path, OldGroup)].
 
-updateOldGroup(NewPath, []) -> [];
+% removes older routings with the same path as the new one
+% generates a new list
+updateOldGroup(_, []) -> [];
 updateOldGroup(NewPath, [{Path, Fun, Arg} | GroupTail]) ->
-  [{updateOldGroupPaths(NewPath, Path), Fun, Arg} | updateOldGroup(NewPath, GroupTail)].
+  NewPathGroup = updateOldGroupPaths(NewPath, Path),
+  % if a group has no path associated anymore we delete the whole group
+  case NewPathGroup == [] of
+    true -> updateOldGroup(NewPath, GroupTail);
+    false -> [{NewPathGroup, Fun, Arg} | updateOldGroup(NewPath, GroupTail)]
+  end.
 
-updateOldGroupPaths(NewPath, []) -> [];
+% skips where the old path is the same as in the new path
+% generates a new list with all old paths
+updateOldGroupPaths(_, []) -> [];
 updateOldGroupPaths(NewPath, [OldPath | OldPathTail]) -> 
   case lists:member(OldPath, NewPath) of
     true -> updateOldGroupPaths(NewPath, OldPathTail);
