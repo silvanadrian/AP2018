@@ -11,32 +11,58 @@ new(Global) ->
 request(Flamingo, Request, From, Ref) ->
   Flamingo ! {From, request, Request, Ref}.
 
+% add error !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 route(Flamingo, Path, Fun, Arg) ->
   Flamingo ! {self(), routes, Path, Fun, Arg},
   receive
-    Flamingo2 -> {ok, Flamingo2}
+    Flamingo -> {ok, make_ref()}
   end.
-
 
 drop_group(_Flamingo, _Id) ->
   not_implemented.
 
-% RouteGroup = {[Paths], Fun, Arg}
 loop(Global, RouteGroups) ->
   receive
+    % requests
     {From, request, {Path, Request}, Ref} ->
-      MatchedRoute = getMatchingRoute(Path, RouteGroups, ""),
+      % get the matching route, with action(Fun) and state(Arg)
+      {MatchedRoute, Fun, Arg} = getMatchingRoute(Path, RouteGroups, {"", none, none}),
       case MatchedRoute of
         "" -> From ! {Ref, {404, "No matching route found"}};
-        _ -> From ! {Ref, {200, getContent(MatchedRoute, Request, RouteGroups)}}
+        _ -> 
+        % try to run the action
+        try Fun({MatchedRoute, Request}, Global, Arg) of
+          R -> 
+            case R of
+              % if the action returns new_state we update the local state
+              {new_state, Content, NewState} ->
+                NewRouteGroups = updateState(RouteGroups, MatchedRoute, NewState),
+                From ! {Ref, {200, Content}}, % everything worked fine so 200
+                loop(Global, NewRouteGroups);
+              {no_change, Content} ->
+                From ! {Ref, {200, Content}}, % everything worked fine so 200
+                loop(Global, RouteGroups)
+            end
+        catch
+          error:_ ->
+            From ! {Ref, {500, "error in action"}},
+            loop(Global, RouteGroups)
+        end
       end,
       loop(Global, RouteGroups);
+    % new routes, need to update routing groups
     {From, routes, Path, Fun, Arg} ->
       NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroups),
-      From ! NewRoutes,
+      From ! self(),
       loop(Global, NewRoutes)
   end.
 
+% update local state if an action returned a state
+updateState([{Path, Fun, Arg} | GroupTail], MatchedRoute, NewState) ->
+  case lists:member(MatchedRoute, Path) of
+    true -> [{Path, Fun, NewState} | GroupTail];
+    false -> [{Path, Fun, Arg} | updateState(GroupTail, MatchedRoute, NewState)]
+  end.
 
 % adds the new Path, Action and arguments to the routing group
 updateRouteGroups(Path, Fun, Arg, OldGroup) ->
@@ -62,22 +88,21 @@ updateOldGroupPaths(NewPath, [OldPath | OldPathTail]) ->
     false -> [OldPath | updateOldGroupPaths(NewPath, OldPathTail)]
   end.
 
+% gets the matching route by calling for the prefix
+% and if it is longer than the one we had from before it updates
 getMatchingRoute(_Path, [], MatchedRoute) -> MatchedRoute;
-getMatchingRoute(Path, [Routes | RestRoutingGroup ], MatchedRoute) ->
-    MatchedRouteNew = matchPrefix(Path, Routes),
+getMatchingRoute(Path, [Routes | RestRoutingGroup ], {MatchedRoute, Fun, Arg}) ->
+    {MatchedRouteNew, FunNew, ArgNew} = matchPrefix(Path, Routes),
     case length(MatchedRouteNew) > length(MatchedRoute) of
-      true -> getMatchingRoute(Path, RestRoutingGroup, MatchedRouteNew);
-      false -> getMatchingRoute(Path, RestRoutingGroup, MatchedRoute)
+      true -> getMatchingRoute(Path, RestRoutingGroup, {MatchedRouteNew, FunNew, ArgNew});
+      false -> getMatchingRoute(Path, RestRoutingGroup, {MatchedRoute, Fun, Arg})
     end.
 
+% gets the longest prefix from this routing group
+% if no prefixes it returns the empty string
 matchPrefix(Path, {Routes, Fun, Arg}) ->
   MatchedPrefixes = lists:filter(fun(Route) -> string:left(Path, length(Route)) == Route end,Routes),
   case MatchedPrefixes of
-    [] -> "";
-    _ -> lists:max(MatchedPrefixes)
+    [] -> {"", Fun, Arg};
+    _ -> {lists:max(MatchedPrefixes), Fun, Arg}
   end.
-
-getContent(MatchedRoute, Request, [], A) ->   A(Request).
-getContent(MatchedRoute, Request, [Group | RouteGroup], _) ->
-  A = matchMatchedRoute(MatchedRoute, Group),
-  getContent(MatchedRoute, Request, RouteGroup, A).
