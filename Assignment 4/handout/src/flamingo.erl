@@ -1,6 +1,6 @@
 -module(flamingo).
 
--export([new/1, request/4, route/4, drop_group/2]).
+-export([new/1, request/4, route/4, drop_group/2, matchPrefix/2, getMatchingRoute/3]).
 
 new(Global) ->
   try ({ok, spawn(fun() -> loop(Global, []) end)})
@@ -22,29 +22,21 @@ drop_group(_Flamingo, _Id) ->
   not_implemented.
 
 % RouteGroup = {[Paths], Fun, Arg}
-loop(Global, RouteGroup) ->
+loop(Global, RouteGroups) ->
   receive
     {From, request, {Path, Request}, Ref} ->
-      F = getFuns(Path, RouteGroup),
-
-
-      case maps:is_key(Path, RouteGroup) of
-        true -> F = maps:get(Path, RouteGroup),
-          Content  = F({Path, Request}, Global, Ref),
-          From ! {Ref, {200, Content}}
+      MatchedRoute = getMatchingRoute(Path, RouteGroups, ""),
+      case MatchedRoute of
+        "" -> From ! {Ref, {404, "No matching route found"}};
+        _ -> From ! {Ref, {200, getContent(MatchedRoute, Request, RouteGroups)}}
       end,
-      loop(Global, RouteGroup);
+      loop(Global, RouteGroups);
     {From, routes, Path, Fun, Arg} ->
-      NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroup),
+      NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroups),
       From ! NewRoutes,
       loop(Global, NewRoutes)
   end.
 
-getFuns(Path, RouteGroup) ->
-  L = .
-
-getFun(Path, PathGroup) ->
-  
 
 % adds the new Path, Action and arguments to the routing group
 updateRouteGroups(Path, Fun, Arg, OldGroup) ->
@@ -69,4 +61,23 @@ updateOldGroupPaths(NewPath, [OldPath | OldPathTail]) ->
     true -> updateOldGroupPaths(NewPath, OldPathTail);
     false -> [OldPath | updateOldGroupPaths(NewPath, OldPathTail)]
   end.
-  
+
+getMatchingRoute(_Path, [], MatchedRoute) -> MatchedRoute;
+getMatchingRoute(Path, [Routes | RestRoutingGroup ], MatchedRoute) ->
+    MatchedRouteNew = matchPrefix(Path, Routes),
+    case length(MatchedRouteNew) > length(MatchedRoute) of
+      true -> getMatchingRoute(Path, RestRoutingGroup, MatchedRouteNew);
+      false -> getMatchingRoute(Path, RestRoutingGroup, MatchedRoute)
+    end.
+
+matchPrefix(Path, {Routes, Fun, Arg}) ->
+  MatchedPrefixes = lists:filter(fun(Route) -> string:left(Path, length(Route)) == Route end,Routes),
+  case MatchedPrefixes of
+    [] -> "";
+    _ -> lists:max(MatchedPrefixes)
+  end.
+
+getContent(MatchedRoute, Request, [], A) ->   A(Request).
+getContent(MatchedRoute, Request, [Group | RouteGroup], _) ->
+  A = matchMatchedRoute(MatchedRoute, Group),
+  getContent(MatchedRoute, Request, RouteGroup, A).
