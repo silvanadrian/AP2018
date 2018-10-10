@@ -18,8 +18,6 @@ try_it_hello(Server) ->
   flamingo:request(Server, {"/hello", []}, Me, Ref),
   receive
     {Ref, Reply} -> Reply
-  after 5000 ->
-    erlang:error(timeout)
   end.
 
 try_it_goodbye(Server) ->
