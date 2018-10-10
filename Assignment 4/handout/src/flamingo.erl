@@ -52,14 +52,22 @@ loop(Global, RouteGroups) ->
       loop(Global, RouteGroups);
     % new routes, need to update routing groups
     {From, routes, Path, Fun, Arg} ->
-      try updateRouteGroups(Path, Fun, Arg, RouteGroups) of
-        NewRoutes ->
-          From ! {ok, make_ref()},
-          loop(Global, NewRoutes)
-        catch
-          _:Reason ->
-            From ! {error, Reason},
-            loop(Global, RouteGroups)
+      case Path of
+        [] ->
+          From ! {error, "No Path given"},
+          loop(Global, RouteGroups);
+        [""] ->
+          From ! {error, "Empty Path given"},
+          loop(Global, RouteGroups);
+        _ -> try updateRouteGroups(Path, Fun, Arg, RouteGroups) of
+              NewRoutes ->
+                From ! {ok, make_ref()},
+                loop(Global, NewRoutes)
+              catch
+                 _:Reason ->
+                  From ! {error, Reason},
+                  loop(Global, RouteGroups)
+          end
       end
   end.
 
