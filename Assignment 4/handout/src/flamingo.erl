@@ -53,7 +53,7 @@ loop(Global, RouteGroups) ->
     % new routes, need to update routing groups
     {From, routes, Path, Fun, Arg} ->
       try NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroups) of
-        _ -> From ! {ok, self()}
+        _ -> From ! {ok, make_ref()}
         catch
           _:Reason -> {error, Reason}
       end,
