@@ -2,6 +2,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -import(flamingo, [new/1,request/4,route/4]).
 
+%% Flamingo Tests
 new_server_test() ->
   ?assertMatch({ok, _},server()).
 
@@ -109,3 +110,8 @@ goodbye_route_function(Server) ->
 
 hello_route_double_function(Server) ->
   flamingo:route(Server, ["/hello", "/hello"], fun hello/3, none).
+
+%% Hello Module Tests
+
+
+%% Mood Module Tests
