@@ -10,7 +10,6 @@ hello_response_test() ->
     Msg -> ?assertEqual({Ref, {200, "Hello my friend"}}, Msg)
   end.
 
-
 goodbye_response_test() ->
   Server = hello:server(),
   {Ref, Me} = make_references(),
