@@ -11,7 +11,6 @@ new(Global) ->
 request(Flamingo, Request, From, Ref) ->
   Flamingo ! {From, request, Request, Ref}.
 
-% add error !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 route(Flamingo, Path, Fun, Arg) ->
   Flamingo ! {self(), routes, Path, Fun, Arg},
   receive
