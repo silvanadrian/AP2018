@@ -1,6 +1,6 @@
 -module(flamingo).
 
--export([new/1, request/4, route/4, drop_group/2, matchPrefix/2, getMatchingRoute/3]).
+-export([new/1, request/4, route/4, drop_group/2]).
 
 new(Global) ->
   try ({ok, spawn(fun() -> loop(Global, []) end)})
