@@ -15,7 +15,7 @@ request(Flamingo, Request, From, Ref) ->
 route(Flamingo, Path, Fun, Arg) ->
   Flamingo ! {self(), routes, Path, Fun, Arg},
   receive
-    Flamingo -> {ok, make_ref()}
+    {Status, Content} -> {Status, Content}
   end.
 
 drop_group(_Flamingo, _Id) ->
@@ -52,8 +52,11 @@ loop(Global, RouteGroups) ->
       loop(Global, RouteGroups);
     % new routes, need to update routing groups
     {From, routes, Path, Fun, Arg} ->
-      NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroups),
-      From ! self(),
+      try NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroups) of
+        _ -> From ! {ok, self()}
+        catch
+          _:Reason -> {error, Reason}
+      end,
       loop(Global, NewRoutes)
   end.
 
