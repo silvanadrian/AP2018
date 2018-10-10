@@ -3,7 +3,7 @@
 \usepackage{tabularx}
 \usepackage{ltablex}
 \usepackage[cache=false]{minted}
-\setminted[haskell]{
+\setminted[erlang]{
 frame=lines,
 framesep=2mm,
 baselinestretch=1.1,
@@ -79,7 +79,7 @@ For letting the function in a routing group not run in a concurrent fashion we w
 
 \subsection{Scope of Test Cases}
 We tested edge cases as well as happy cases, which we came up with.
-The only thing we weren't able to test is the error from the flamingo server when adding new routes, which we don't know how to get.
+The only thing we weren't able to test is some try/catches where we weren't able to produce an error case.
 Also thanks to our test cases we were able to find some bugs, for example the empty Path and empty Path list.
 
 \subsection{Correctness}
@@ -93,7 +93,9 @@ We followed closely the requirements specified in the assignment, which we wrote
 
 \appendix
 \section{Code Listing}
-
-\section{Tests Listing}
+\inputminted{erlang}{handin/src/flamingo.erl}
+\inputminted{erlang}{handin/src/counter.erl}
+\inputminted{erlang}{handin/src/mood.erl}
+\inputminted{erlang}{handin/src/hello.erl}
 
 \end{document}}
