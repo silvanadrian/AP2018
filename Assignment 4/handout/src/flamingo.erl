@@ -52,12 +52,15 @@ loop(Global, RouteGroups) ->
       loop(Global, RouteGroups);
     % new routes, need to update routing groups
     {From, routes, Path, Fun, Arg} ->
-      try NewRoutes = updateRouteGroups(Path, Fun, Arg, RouteGroups) of
-        _ -> From ! {ok, make_ref()}
+      try updateRouteGroups(Path, Fun, Arg, RouteGroups) of
+        NewRoutes ->
+          From ! {ok, make_ref()},
+          loop(Global, NewRoutes)
         catch
-          _:Reason -> {error, Reason}
-      end,
-      loop(Global, NewRoutes)
+          _:Reason ->
+            From ! {error, Reason},
+            loop(Global, RouteGroups)
+      end
   end.
 
 % update local state if an action returned a state
