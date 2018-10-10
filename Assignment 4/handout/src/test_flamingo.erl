@@ -1,17 +1,18 @@
 -module(test_flamingo).
 -include_lib("eunit/include/eunit.hrl").
 -import(flamingo, [new/1,request/4,route/4]).
+-import(hello, [server/0]).
 
 %% Flamingo Tests
 new_server_test() ->
-  ?assertMatch({ok, _},server()).
+  ?assertMatch({ok, _}, flamingo_server()).
 
 route_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   ?assertMatch({ok, _Id}, hello_route(F)).
 
 failing_request_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   hello_route(F),
   {Ref, Me} = make_references(),
   flamingo:request(F, {"/test", []}, Me, Ref),
@@ -20,7 +21,7 @@ failing_request_test() ->
   end.
 
 failing_request_near_match_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   hello_route(F),
   {Ref, Me} = make_references(),
   flamingo:request(F, {"/hella", []}, Me, Ref),
@@ -29,7 +30,7 @@ failing_request_near_match_test() ->
   end.
 
 error_request_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   hello_route(F),
   {Ref, Me} = make_references(),
   flamingo:request(F, {"/hello", []}, Me, Ref),
@@ -38,7 +39,7 @@ error_request_test() ->
   end.
 
 prefix_exact_match_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   hello_route_function(F),
   {Ref, Me} = make_references(),
   flamingo:request(F, {"/hello", []}, Me, Ref),
@@ -48,7 +49,7 @@ prefix_exact_match_test() ->
 
 
 prefix_partial_match_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   hell_route(F),
   {Ref, Me} = make_references(),
   flamingo:request(F, {"/hello", []}, Me, Ref),
@@ -57,7 +58,7 @@ prefix_partial_match_test() ->
   end.
 
 same_prefix_in_different_groups_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   hello_route_function(F),
   goodbye_route_function(F),
   {Ref, Me} = make_references(),
@@ -67,7 +68,7 @@ same_prefix_in_different_groups_test() ->
   end.
 
 same_prefix_in_same_group_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   hello_route_double_function(F),
   {Ref, Me} = make_references(),
   flamingo:request(F, {"/hello", []}, Me, Ref),
@@ -76,15 +77,15 @@ same_prefix_in_same_group_test() ->
   end.
 
 no_prefix_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   ?assertEqual({error, "No Path given"}, flamingo:route(F, [], x, none)).
 
 empty_prefix_test() ->
-  {ok, F} = server(),
+  {ok, F} = flamingo_server(),
   ?assertEqual({error, "Empty Path given"}, flamingo:route(F, [""], x, none)).
 
 % server helper function
-server() ->
+flamingo_server() ->
   flamingo:new("Test").
 
 hello_route(Server) ->
@@ -110,8 +111,3 @@ goodbye_route_function(Server) ->
 
 hello_route_double_function(Server) ->
   flamingo:route(Server, ["/hello", "/hello"], fun hello/3, none).
-
-%% Hello Module Tests
-
-
-%% Mood Module Tests
