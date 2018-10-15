@@ -40,7 +40,7 @@ handle_event({call, From}, get_questions, Data) ->
 handle_event({call, From}, play, Data) ->
   case Data of
     [] -> {keep_state, Data, {reply, From, {error, no_questions}}};
-    _ -> Conductor = maps:update(conductor, self(), Data),
+    _ -> Conductor = maps:update(conductor, From, Data),
       {next_state, playing, Conductor, {reply, From, ok}}
   end.
 
