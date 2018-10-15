@@ -22,17 +22,17 @@ play(Server) ->
 next(Server) ->
   gen_statem:call(Server, next).
 
-timesup(_Arg0) ->
-  erlang:error(not_implemented).
+timesup(Server) ->
+  gen_statem:call(Server, timesup).
 
-join(_Arg0, _Arg1) ->
-  erlang:error(not_implemented).
+join(Server, Nickname) ->
+  gen_statem:call(Server, {join, Nickname}).
 
-leave(_Arg0, _Arg1) ->
-  erlang:error(not_implemented).
+leave(Server, Ref) ->
+  gen_statem:call(Server, {leave, Ref}).
 
-guess(_Arg0, _Arg1, _Arg2) ->
-  erlang:error(not_implemented).
+guess(Server, Ref, Index) ->
+  gen_statem:call(Server, {guess, Ref, Index}).
 
 handle_event({call, From}, get_questions, Data) ->
   Questions = maps:get(questions, Data),
@@ -44,9 +44,38 @@ handle_event({call, From}, play, Data) ->
       Conductor = maps:update(conductor, Pid, Data),
       {next_state, between_questions, Conductor, {reply, From, ok}}
   end;
+handle_event({call, From}, {join, Nickname}, Data) ->
+  PlayersValues = maps:values(maps:get(players, Data)),
+  case check_if_player_exists(Nickname, PlayersValues) of
+    true -> {keep_state, Data, {reply, From, {error, is_taken}}};
+    false ->  {Pid, _} = From,
+      PlayersMap = maps:get(players, Data),
+      Ref = make_ref(),
+      NewData = Data#{players => PlayersMap#{Ref => {Nickname, Pid, 0}}},
+      maps:get(conductor, NewData) ! {player_joined, Nickname, maps:size(maps:get(players, NewData))},
+      {keep_state, NewData, {reply, From, {ok, Ref}}}
+  end;
+handle_event({call, From}, {leave, Ref}, Data) ->
+  case maps:is_key(Ref, maps:get(players, Data)) of
+    true ->
+      {Nickname, _, _} = maps:get(Ref, maps:get(players, Data)),
+      UpdatedPlayers = maps:remove(Ref, maps:get(players, Data)),
+      NewData = maps:update(players, UpdatedPlayers, Data),
+      maps:get(conductor, NewData) ! {player_left, Nickname, maps:size(maps:get(players, NewData))},
+      {keep_state, NewData, {reply, From, ok}};
+    false ->  {keep_state, Data, {reply, From, {error, who_are_you}}}
+  end;
 % ignore all other unhandled events
 handle_event({_,From},_,Data) ->
   {keep_state, Data, {reply, From, {error, "Unhandled event"}}}.
+
+
+check_if_player_exists(_, []) -> false;
+check_if_player_exists(Nickname, [{Playername, _, _} | Players]) ->
+  case Nickname == Playername of
+    true -> true;
+    false -> check_if_player_exists(Nickname, Players)
+  end.
 
 editable({call, From}, {add_question, Question}, Data) ->
   case Question of
@@ -65,14 +94,42 @@ between_questions({call, From}, next, Data) ->
             NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
             {next_state, active_question, NewData, {reply, From, {ok, Question}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
-  end.
+  end;
+between_questions({call, From}, timesup, Data) ->
+  {Pid, _} = From,
+  case Pid == maps:get(conductor, Data) of
+    true -> {keep_state, Data, {reply, From, {error, no_question_asked}}};
+    false -> {keep_state, Data, {reply, From, {error, nice_try}}}
+  end;
+between_questions({call, From}, {join, Name}, Data) ->
+  handle_event({call, From}, {join, Name}, Data);
+between_questions({call, From}, {leave, Ref}, Data) ->
+  handle_event({call, From}, {leave, Ref}, Data).
 
 active_question({call, From}, next, Data) ->
   {Pid, _} = From,
   case Pid == maps:get(conductor, Data) of
     true -> {keep_state, Data, {reply, From, {error, has_active_question}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
-  end.
+  end;
+active_question({call, From}, timesup, Data) ->
+  {Pid, _} = From,
+  case Pid == maps:get(conductor, Data) of
+    true ->
+      case length(maps:get(questions,Data)) == maps:get(active_question, Data) of
+        true -> {stop_and_reply, normal , {reply, From, {ok, distribution, last_question, total, true}}};
+        false -> {next_state, between_questions, Data, {reply, From, {ok, distribution, last_question, total, false}}}
+      end;
+    false -> {keep_state, Data, {reply, From, {error, nice_try}}}
+  end;
+active_question({call, From}, {guess, Ref, Index}, Data) ->
+  case Index > 1 of
+
+  end
+active_question({call, From}, {join, Name}, Data) ->
+  handle_event({call, From}, {join, Name}, Data).
+
+
 
 %% Mandatory callback functions
 terminate(_Reason, _State, _Data) ->
