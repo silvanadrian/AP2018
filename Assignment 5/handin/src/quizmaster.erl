@@ -46,9 +46,13 @@ handle_event({call, From}, play, Data) ->
 
 
 editable({call, From}, {add_question, Question}, Data) ->
-  OldQuestions = maps:get(questions, Data),
-  UpdatedQuestions = maps:update(questions, lists:append(OldQuestions, [Question]), Data),
-  {keep_state, UpdatedQuestions , {reply, From, ok}};
+  case Question of
+    {_,[_|_]} ->   OldQuestions = maps:get(questions, Data),
+      UpdatedQuestions = maps:update(questions, lists:append(OldQuestions, [Question]), Data),
+      {keep_state, UpdatedQuestions , {reply, From, ok}};
+    {_, []} -> {keep_state, Data , {reply, From, {error, "Question is in wrong format"}}}
+  end;
+
 editable(EventType, EventContent, Data) ->
   handle_event(EventType, EventContent, Data).
 
