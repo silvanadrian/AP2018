@@ -14,7 +14,7 @@
 %%%
 %%%-------------------------------------------------------------------
 start() ->
-  gen_statem:start({local, quizmaster_server}, ?MODULE, [], []).
+  gen_statem:start(?MODULE, [], []).
 
 add_question(Server, {Description, Answers}) ->
   gen_statem:call(Server, {add_question, {Description, Answers}}).
@@ -71,7 +71,7 @@ handle_event({call, From}, {join, Nickname}, Data) ->
 handle_event({call, From}, {leave, Ref}, Data) ->
   case maps:is_key(Ref, maps:get(players, Data)) of
     true ->
-      {Nickname, _, _} = maps:get(Ref, maps:get(players, Data)),
+      {Nickname, _, _, _} = maps:get(Ref, maps:get(players, Data)),
       UpdatedPlayers = maps:remove(Ref, maps:get(players, Data)),
       NewData = maps:update(players, UpdatedPlayers, Data),
       maps:get(conductor, NewData) ! {player_left, Nickname, maps:size(maps:get(players, NewData))},
@@ -128,9 +128,10 @@ active_question({call, From}, timesup, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
     true ->
       case length(maps:get(questions,Data)) == maps:get(active_question, Data) of
-        true -> {stop_and_reply, normal , {reply, From, {ok, distribution, last_question, total, true}}};
+        true -> {stop_and_reply, normal , {reply, From, quizmaster_helpers:get_report(Data, true)}};
         false -> NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
-          {next_state, between_questions, NewData, {reply, From, {ok, distribution, last_question, total, false}}}
+          NewData2 = reset_last_points(NewData),
+          {next_state, between_questions, NewData2, {reply, From, quizmaster_helpers:get_report(Data, false)}}
       end;
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
@@ -138,7 +139,7 @@ active_question({call, From}, timesup, Data) ->
 active_question({call, From}, {guess, Ref, Index}, Data) ->
   case quizmaster_helpers:check_index_in_range(Index, Data) of
     true -> NewData = quizmaster_helpers:check_guess(Ref, Index, Data),
-      {keep_state, Data, {reply, From, {ok, NewData}}};
+      {keep_state, NewData, {reply, From, {ok, NewData}}};
     false -> {keep_state, Data} % ignore guess if Index out of range
   end;
 
@@ -158,3 +159,11 @@ init([]) ->
   {ok, State, Data}.
 
 callback_mode() -> state_functions.
+
+reset_last_points(Data) ->
+  PlayerList = reset_points(maps:to_list(maps:get(players, Data))),
+  maps:update(players, maps:from_list(PlayerList), Data).
+
+reset_points([]) -> [];
+reset_points([{Ref, {Nickname, Pid, Total, _}} | Players]) ->
+  [{Ref, {Nickname, Pid, Total, 0}} | reset_points(Players)].
