@@ -1,5 +1,5 @@
 -module(quizmaster_helpers).
--export([check_index_in_range/2, get_active_question/1, is_conductor/2, check_if_player_exists/2, check_guess/3, init_distribution/2]).
+-export([check_index_in_range/2, get_active_question/1, is_conductor/2, check_if_player_exists/2, check_guess/3, init_distribution/2, broadcast_next_question/2]).
 
 % check index of guess
 check_index_in_range(Index, _) when Index < 1 -> false;
@@ -70,3 +70,9 @@ update_distribution(Index, NewData) ->
   Count = maps:get(Index, Dist),
   UpdatedDist = Dist#{Index => Count + 1},
   NewData#{distribution => UpdatedDist}.
+
+% broadcast next_question to all players
+broadcast_next_question(_Question, []) -> void;
+broadcast_next_question(Question, [{Ref, {_,Pid,_,_}} | Players]) ->
+  Pid ! {next_question, Ref, Question},
+  broadcast_next_question(Question, Players).

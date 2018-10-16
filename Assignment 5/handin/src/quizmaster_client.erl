@@ -12,5 +12,7 @@ add_questions() ->
   {ok, Ref} = quizmaster:join(Q, "Nick"),
   quizmaster:next(Q),
   quizmaster:guess(Q, Ref, 3),
-  quizmaster:guess(Q, Ref, 3). % return the same since Nick already guessed once
+  quizmaster:guess(Q, Ref, 3),
+  quizmaster:timesup(Q),
+  quizmaster:next(Q).% return the same since Nick already guessed once
 

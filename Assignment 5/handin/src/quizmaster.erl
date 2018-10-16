@@ -102,6 +102,7 @@ between_questions({call, From}, next, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
     true -> {Description, Answers} = lists:nth(maps:get(active_question, Data), maps:get(questions, Data)),
             NewData = Data#{distribution => quizmaster_helpers:init_distribution(length(Answers), #{})},
+            quizmaster_helpers:broadcast_next_question({Description, Answers}, maps:to_list(maps:get(players, NewData))),
             {next_state, active_question, NewData, {reply, From, {ok, {Description, Answers}}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
