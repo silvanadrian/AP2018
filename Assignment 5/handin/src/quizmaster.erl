@@ -86,7 +86,7 @@ editable({call, From}, {add_question, Question}, Data) ->
 
 % start playing a quiz -> change state to between_questions
 editable({call, From}, play, Data) ->
-  case Data of
+  case maps:get(questions,Data) of
     [] -> {keep_state, Data, {reply, From, {error, no_questions}}};
     _ -> {Pid, _} = From,
       Conductor = maps:update(conductor, Pid, Data),
@@ -111,7 +111,7 @@ between_questions({call, From}, next, Data) ->
 
 between_questions({call, From}, timesup, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
-    true -> {keep_state, Data, {reply, From, {error, no_question_asked}}};
+    true -> {keep_state, Data, {reply, From, {error, no_questions_asked}}};
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
 between_questions({call, From}, {join, Name}, Data) ->

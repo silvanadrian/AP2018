@@ -29,10 +29,10 @@ check_guess(Ref, Index, Data) ->
   CurrentQuestion = get_active_question(Data),
   case is_first_guess(Ref, Data) of
     true -> UpdatedData = maps:update(answered, lists:append([Ref], maps:get(answered, Data)), Data),
-          case is_correct(Index, CurrentQuestion) of
-              true -> NewData = update_players_score(Ref, UpdatedData, correct), NewData2 = update_distribution(Index, NewData), NewData2;
-              false -> NewData = update_players_score(Ref, UpdatedData, incorrect), NewData2 = update_distribution(Index, NewData), NewData2
-            end;
+      case is_correct(Index, CurrentQuestion) of
+        true -> NewData = update_players_score(Ref, UpdatedData, correct), NewData2 = update_distribution(Index, NewData), NewData2;
+        false -> NewData = update_players_score(Ref, UpdatedData, incorrect), NewData2 = update_distribution(Index, NewData), NewData2
+      end;
     false -> Data %send back old Data, so only first guess counts
   end.
 
@@ -55,14 +55,14 @@ update_players_score(Ref, UpdatedData, Correct) ->
   case Correct of
     correct ->
       {_Nickname, _Pid, Total, _LastScore} = maps:get(Ref, maps:get(players, UpdatedData)),
-      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total+1, 1}, maps:get(players, UpdatedData)), UpdatedData);
+      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total + 1, 1}, maps:get(players, UpdatedData)), UpdatedData);
     incorrect ->
       {_Nickname, _Pid, Total, _LastScore} = maps:get(Ref, maps:get(players, UpdatedData)),
       maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total, 0}, maps:get(players, UpdatedData)), UpdatedData)
   end.
 
 init_distribution(1, Map) -> Map#{1 => 0};
-init_distribution(AnswerIndex, Map) -> init_distribution(AnswerIndex-1, Map#{AnswerIndex => 0}).
+init_distribution(AnswerIndex, Map) -> init_distribution(AnswerIndex - 1, Map#{AnswerIndex => 0}).
 
 % update distribution between index and how many times answered
 update_distribution(Index, NewData) ->
@@ -73,7 +73,7 @@ update_distribution(Index, NewData) ->
 
 % broadcast next_question to all players
 broadcast_next_question({_Description, _Answers}, []) -> void;
-broadcast_next_question({Description, Answers}, [{Ref, {_,Pid,_,_}} | Players]) ->
+broadcast_next_question({Description, Answers}, [{Ref, {_, Pid, _, _}} | Players]) ->
   NewAnswers = remove_correct(Answers),
   Pid ! {next_question, Ref, {Description, NewAnswers}},
   broadcast_next_question({Description, Answers}, Players).
@@ -81,7 +81,7 @@ broadcast_next_question({Description, Answers}, [{Ref, {_,Pid,_,_}} | Players]) 
 get_report(Data, LastQ) ->
   LastPoints = get_points_last_question(maps:to_list(maps:get(players, Data))),
   TotalPoints = get_points_total(maps:to_list(maps:get(players, Data))),
-  {ok, maps:get(distribution, Data), LastPoints, TotalPoints, LastQ}.
+  {ok, maps:values(maps:get(distribution, Data)), maps:from_list(LastPoints), maps:from_list(TotalPoints), LastQ}.
 
 get_points_last_question([]) -> [];
 get_points_last_question([{_Ref, {Name, _Pid, _Total, LastScore}} | T]) ->
@@ -95,5 +95,5 @@ remove_correct([]) -> [];
 remove_correct([Answer | Answers]) ->
   case Answer of
     {_, Text} -> [Text | remove_correct(Answers)];
-      Text -> [Text | remove_correct(Answers)]
+    Text -> [Text | remove_correct(Answers)]
   end.
