@@ -63,7 +63,7 @@ handle_event({call, From}, {join, Nickname}, Data) ->
     false ->  {Pid, _} = From,
       PlayersMap = maps:get(players, Data),
       Ref = make_ref(),
-      NewData = Data#{players => PlayersMap#{Ref => {Nickname, Pid, 0}}},
+      NewData = Data#{players => PlayersMap#{Ref => {Nickname, Pid, 0, 0}}},
       maps:get(conductor, NewData) ! {player_joined, Nickname, maps:size(maps:get(players, NewData))},
       {keep_state, NewData, {reply, From, {ok, Ref}}}
   end;

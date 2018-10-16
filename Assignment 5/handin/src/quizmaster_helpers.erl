@@ -30,8 +30,8 @@ check_guess(Ref, Index, Data) ->
   case is_first_guess(Ref, Data) of
     true -> UpdatedData = maps:update(answered, lists:append([Ref], maps:get(answered, Data)), Data),
           case is_correct(Index, CurrentQuestion) of
-              true -> UpdatedData;
-              false -> Data
+              true -> NewData = update_players_score(Ref, UpdatedData, correct), NewData;
+              false -> NewData = update_players_score(Ref, UpdatedData, incorrect), NewData
             end;
     false -> Data %send back old Data, so only first guess counts
   end.
@@ -50,3 +50,14 @@ is_correct(Index, {_, Answers}) ->
     {correct, _} -> true;
     _ -> false
   end.
+
+update_players_score(Ref, UpdatedData, Correct) ->
+  case Correct of
+    correct ->
+      {_Nickname, _Pid, Total, _LastScore} = maps:get(Ref, maps:get(players, UpdatedData)),
+      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total+1, 1}, maps:get(players, UpdatedData)), UpdatedData);
+    incorrect ->
+      {_Nickname, _Pid, Total, _LastScore} = maps:get(Ref, maps:get(players, UpdatedData)),
+      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total, 0}, maps:get(players, UpdatedData)), UpdatedData)
+  end.
+
