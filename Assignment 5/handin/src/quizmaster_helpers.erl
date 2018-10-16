@@ -72,10 +72,11 @@ update_distribution(Index, NewData) ->
   NewData#{distribution => UpdatedDist}.
 
 % broadcast next_question to all players
-broadcast_next_question(_Question, []) -> void;
-broadcast_next_question(Question, [{Ref, {_,Pid,_,_}} | Players]) ->
-  Pid ! {next_question, Ref, Question},
-  broadcast_next_question(Question, Players).
+broadcast_next_question({_Description, _Answers}, []) -> void;
+broadcast_next_question({Description, Answers}, [{Ref, {_,Pid,_,_}} | Players]) ->
+  NewAnswers = remove_correct(Answers),
+  Pid ! {next_question, Ref, {Description, NewAnswers}},
+  broadcast_next_question({Description, Answers}, Players).
 
 get_report(Data, LastQ) ->
   LastPoints = get_points_last_question(maps:to_list(maps:get(players, Data))),
@@ -89,3 +90,10 @@ get_points_last_question([{_Ref, {Name, _Pid, _Total, LastScore}} | T]) ->
 get_points_total([]) -> [];
 get_points_total([{_Ref, {Name, _Pid, Total, _LastScore}} | T]) ->
   [{Name, Total} | get_points_total(T)].
+
+remove_correct([]) -> [];
+remove_correct([Answer | Answers]) ->
+  case Answer of
+    {_, Text} -> [Text | remove_correct(Answers)];
+      Text -> [Text | remove_correct(Answers)]
+  end.

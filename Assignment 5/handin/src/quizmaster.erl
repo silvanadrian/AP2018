@@ -38,7 +38,7 @@ leave(Server, Ref) ->
   gen_statem:call(Server, {leave, Ref}).
 
 guess(Server, Ref, Index) ->
-  gen_statem:call(Server, {guess, Ref, Index}).
+  gen_statem:cast(Server, {guess, Ref, Index}).
 
 
 
@@ -46,15 +46,6 @@ guess(Server, Ref, Index) ->
 handle_event({call, From}, get_questions, Data) ->
   Questions = maps:get(questions, Data),
   {keep_state, Data , {reply, From, Questions}};
-
-% start playing a quiz -> change state to between_questions
-handle_event({call, From}, play, Data) ->
-  case Data of
-    [] -> {keep_state, Data, {reply, From, {error, no_questions}}};
-    _ -> {Pid, _} = From,
-      Conductor = maps:update(conductor, Pid, Data),
-      {next_state, between_questions, Conductor, {reply, From, ok}}
-  end;
 
 handle_event({call, From}, {join, Nickname}, Data) ->
   PlayersValues = maps:values(maps:get(players, Data)),
@@ -80,15 +71,26 @@ handle_event({call, From}, {leave, Ref}, Data) ->
   end;
 
 % ignore all other unhandled events
-handle_event({_,From},_,Data) ->
-  {keep_state, Data, {reply, From, {error, "Unhandled event"}}}.
+handle_event(_EventType, _EventContent, Data) ->
+  {keep_state, Data}.
 
 editable({call, From}, {add_question, Question}, Data) ->
   case Question of
     {_,[_|_]} ->   OldQuestions = maps:get(questions, Data),
       UpdatedQuestions = maps:update(questions, lists:append(OldQuestions, [Question]), Data),
       {keep_state, UpdatedQuestions , {reply, From, ok}};
-    {_, []} -> {keep_state, Data , {reply, From, {error, "Question is in wrong format"}}}
+    {_, []} -> {keep_state, Data , {reply, From, {error, "Question is in wrong format"}}};
+    _ ->
+      {keep_state, Data, [{reply,From, {error, "Wrong Format"}}]}
+  end;
+
+% start playing a quiz -> change state to between_questions
+editable({call, From}, play, Data) ->
+  case Data of
+    [] -> {keep_state, Data, {reply, From, {error, no_questions}}};
+    _ -> {Pid, _} = From,
+      Conductor = maps:update(conductor, Pid, Data),
+      {next_state, between_questions, Conductor, {reply, From, ok}}
   end;
 
 % catch join message while editable
@@ -102,7 +104,7 @@ between_questions({call, From}, next, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
     true -> {Description, Answers} = lists:nth(maps:get(active_question, Data), maps:get(questions, Data)),
             NewData = Data#{distribution => quizmaster_helpers:init_distribution(length(Answers), #{})},
-            quizmaster_helpers:broadcast_next_question({Description, Answers}, maps:to_list(maps:get(players, NewData))),
+            quizmaster_helpers:broadcast_next_question({Description, Answers}, maps:to_list(maps:get(players, Data))),
             {next_state, active_question, NewData, {reply, From, {ok, {Description, Answers}}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
@@ -116,7 +118,10 @@ between_questions({call, From}, {join, Name}, Data) ->
   handle_event({call, From}, {join, Name}, Data);
 
 between_questions({call, From}, {leave, Ref}, Data) ->
-  handle_event({call, From}, {leave, Ref}, Data).
+  handle_event({call, From}, {leave, Ref}, Data);
+
+between_questions(EventType, EventContent, Data) ->
+  handle_event(EventType, EventContent, Data).
 
 active_question({call, From}, next, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
@@ -136,15 +141,18 @@ active_question({call, From}, timesup, Data) ->
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
 
-active_question({call, From}, {guess, Ref, Index}, Data) ->
+active_question(cast, {guess, Ref, Index}, Data) ->
   case quizmaster_helpers:check_index_in_range(Index, Data) of
     true -> NewData = quizmaster_helpers:check_guess(Ref, Index, Data),
-      {keep_state, NewData, {reply, From, {ok, NewData}}};
+      {keep_state, NewData};
     false -> {keep_state, Data} % ignore guess if Index out of range
   end;
 
 active_question({call, From}, {join, Name}, Data) ->
-  handle_event({call, From}, {join, Name}, Data).
+  handle_event({call, From}, {join, Name}, Data);
+
+active_question({call, From}, {leave, Name}, Data) ->
+  handle_event({call, From}, {leave, Name}, Data).
 
 %% Mandatory callback functions
 terminate(_Reason, _State, _Data) ->
