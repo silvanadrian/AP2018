@@ -55,6 +55,29 @@ eunit:test(test_flamingo, [verbose]).
 \end{minted}
 
 \section{Implementation}
+\subsection{Gen-Statem}
+Since the Quizmaster can be seen as a simple State machine we chose gen\_statem.
+The Quizmaster has overall 3 important states:
+\begin{itemize}
+	\item editable
+	\item between\_question
+	\item active\_question
+\end{itemize} 
+
+\begin{figure}
+\begin{center}
+		\includegraphics[width=0.8\textwidth]{images/Quizmaster}
+\end{center}
+	\caption{Simple drawing of quizmaster state machine}
+\end{figure}
+
+\subsection{Data Structure}
+
+
+\subsection{Editable state}
+\subsection{Between\_questions state}
+\subsection{Active\_question state}
+
 needs to be improved
 
 \section{Assessment}
