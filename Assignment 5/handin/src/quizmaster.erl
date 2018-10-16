@@ -46,7 +46,8 @@ guess(Server, Ref, Index) ->
 handle_event({call, From}, get_questions, Data) ->
   Questions = maps:get(questions, Data),
   {keep_state, Data , {reply, From, Questions}};
-% start playing a quiz
+
+% start playing a quiz -> change state to between_questions
 handle_event({call, From}, play, Data) ->
   case Data of
     [] -> {keep_state, Data, {reply, From, {error, no_questions}}};
@@ -54,9 +55,10 @@ handle_event({call, From}, play, Data) ->
       Conductor = maps:update(conductor, Pid, Data),
       {next_state, between_questions, Conductor, {reply, From, ok}}
   end;
+
 handle_event({call, From}, {join, Nickname}, Data) ->
   PlayersValues = maps:values(maps:get(players, Data)),
-  case check_if_player_exists(Nickname, PlayersValues) of
+  case quizmaster_helpers:check_if_player_exists(Nickname, PlayersValues) of
     true -> {keep_state, Data, {reply, From, {error, is_taken}}};
     false ->  {Pid, _} = From,
       PlayersMap = maps:get(players, Data),
@@ -65,6 +67,7 @@ handle_event({call, From}, {join, Nickname}, Data) ->
       maps:get(conductor, NewData) ! {player_joined, Nickname, maps:size(maps:get(players, NewData))},
       {keep_state, NewData, {reply, From, {ok, Ref}}}
   end;
+
 handle_event({call, From}, {leave, Ref}, Data) ->
   case maps:is_key(Ref, maps:get(players, Data)) of
     true ->
@@ -75,17 +78,10 @@ handle_event({call, From}, {leave, Ref}, Data) ->
       {keep_state, NewData, {reply, From, ok}};
     false ->  {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
+
 % ignore all other unhandled events
 handle_event({_,From},_,Data) ->
   {keep_state, Data, {reply, From, {error, "Unhandled event"}}}.
-
-
-check_if_player_exists(_, []) -> false;
-check_if_player_exists(Nickname, [{Playername, _, _} | Players]) ->
-  case Nickname == Playername of
-    true -> true;
-    false -> check_if_player_exists(Nickname, Players)
-  end.
 
 editable({call, From}, {add_question, Question}, Data) ->
   case Question of
@@ -94,19 +90,21 @@ editable({call, From}, {add_question, Question}, Data) ->
       {keep_state, UpdatedQuestions , {reply, From, ok}};
     {_, []} -> {keep_state, Data , {reply, From, {error, "Question is in wrong format"}}}
   end;
+
 % catch join message while editable
 editable({call,From}, {join, _Name}, Data) ->
   {keep_state, Data, {reply, From, {error, "Can't join while editable"}}};
+
 editable(EventType, EventContent, Data) ->
   handle_event(EventType, EventContent, Data).
 
 between_questions({call, From}, next, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
     true -> Question = lists:nth(maps:get(active_question, Data), maps:get(questions, Data)),
-            NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
-            {next_state, active_question, NewData, {reply, From, {ok, Question}}};
+            {next_state, active_question, Data, {reply, From, {ok, Question}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
+
 between_questions({call, From}, timesup, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
     true -> {keep_state, Data, {reply, From, {error, no_question_asked}}};
@@ -114,6 +112,7 @@ between_questions({call, From}, timesup, Data) ->
   end;
 between_questions({call, From}, {join, Name}, Data) ->
   handle_event({call, From}, {join, Name}, Data);
+
 between_questions({call, From}, {leave, Ref}, Data) ->
   handle_event({call, From}, {leave, Ref}, Data).
 
@@ -122,20 +121,25 @@ active_question({call, From}, next, Data) ->
     true -> {keep_state, Data, {reply, From, {error, has_active_question}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
+
 active_question({call, From}, timesup, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
     true ->
       case length(maps:get(questions,Data)) == maps:get(active_question, Data) of
         true -> {stop_and_reply, normal , {reply, From, {ok, distribution, last_question, total, true}}};
-        false -> {next_state, between_questions, Data, {reply, From, {ok, distribution, last_question, total, false}}}
+        false -> NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
+          {next_state, between_questions, NewData, {reply, From, {ok, distribution, last_question, total, false}}}
       end;
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
+
 active_question({call, From}, {guess, Ref, Index}, Data) ->
   case quizmaster_helpers:check_index_in_range(Index, Data) of
-    true -> {keep_state, Data, {reply, From, {index_in_range}}};
+    true -> NewData = quizmaster_helpers:check_guess(Ref, Index, Data),
+      {keep_state, Data, {reply, From, {ok, NewData}}};
     false -> {keep_state, Data} % ignore guess if Index out of range
   end;
+
 active_question({call, From}, {join, Name}, Data) ->
   handle_event({call, From}, {join, Name}, Data).
 
@@ -147,8 +151,8 @@ code_change(_Vsn, State, Data, _Extra) ->
   {ok, State, Data}.
 
 init([]) ->
-  %% Set the initial state + data.  Data is a empty List
-  State = editable, Data = #{conductor => none, questions => [], players => #{}, active_question => 1},
+  %% Set the initial state + data
+  State = editable, Data = #{conductor => none, questions => [], players => #{}, active_question => 1, answered => []},
   {ok, State, Data}.
 
 callback_mode() -> state_functions.

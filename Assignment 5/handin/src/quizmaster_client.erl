@@ -9,5 +9,7 @@ add_questions() ->
   quizmaster:get_questions(Q),
   quizmaster:join(Q, "Nick"), % won't be able to join
   quizmaster:play(Q),
-  {ok, Ref} = quizmaster:join(Q, "Nick").
+  {ok, Ref} = quizmaster:join(Q, "Nick"),
+  quizmaster:next(Q),
+  quizmaster:guess(Q, Ref, 3).
 

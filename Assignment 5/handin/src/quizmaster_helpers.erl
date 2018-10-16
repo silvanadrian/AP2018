@@ -1,15 +1,52 @@
 -module(quizmaster_helpers).
--export([check_index_in_range/2, get_active_question/1,is_conductor/2]).
+-export([check_index_in_range/2, get_active_question/1, is_conductor/2, check_if_player_exists/2, check_guess/3]).
 
-
+% check index of guess
 check_index_in_range(Index, _) when Index < 1 -> false;
 check_index_in_range(Index, Data) when Index > 0 -> index_is_in_range(Index, get_active_question(Data)).
 
 index_is_in_range(Index, {_, Answers}) ->
   Index =< length(Answers).
 
+% get the at the moment active question
 get_active_question(Data) ->
   lists:nth(maps:get(active_question, Data), maps:get(questions, Data)).
 
+% check if pid in from is the same as in Data
 is_conductor({Pid, _}, Data) ->
   Pid == maps:get(conductor, Data).
+
+% check if player exists in players map
+check_if_player_exists(_, []) -> false;
+check_if_player_exists(Nickname, [{Playername, _, _} | Players]) ->
+  case Nickname == Playername of
+    true -> true;
+    false -> check_if_player_exists(Nickname, Players)
+  end.
+
+% check if guess is correct or not
+check_guess(Ref, Index, Data) ->
+  CurrentQuestion = get_active_question(Data),
+  case is_first_guess(Ref, Data) of
+    true -> UpdatedData = maps:update(answered, lists:append([Ref], maps:get(answered, Data)), Data),
+          case is_correct(Index, CurrentQuestion) of
+              true -> UpdatedData;
+              false -> Data
+            end;
+    false -> Data %send back old Data, so only first guess counts
+  end.
+
+% only accept the first guess by remembering Ref of players who answered
+is_first_guess(Ref, Data) ->
+  case lists:member(Ref, maps:get(answered, Data)) of
+    true -> false;
+    false -> true
+  end.
+
+% check if index is the right answer
+is_correct(Index, {_, Answers}) ->
+  Answer = lists:nth(Index, Answers),
+  case Answer of
+    {correct, _} -> true;
+    _ -> false
+  end.
