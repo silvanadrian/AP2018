@@ -1,5 +1,5 @@
 -module(quizmaster_helpers).
--export([check_index_in_range/2, get_active_question/1, is_conductor/2, check_if_player_exists/2, check_guess/3]).
+-export([check_index_in_range/2, get_active_question/1, is_conductor/2, check_if_player_exists/2, check_guess/3, init_distribution/2]).
 
 % check index of guess
 check_index_in_range(Index, _) when Index < 1 -> false;
@@ -30,7 +30,7 @@ check_guess(Ref, Index, Data) ->
   case is_first_guess(Ref, Data) of
     true -> UpdatedData = maps:update(answered, lists:append([Ref], maps:get(answered, Data)), Data),
           case is_correct(Index, CurrentQuestion) of
-              true -> NewData = update_players_score(Ref, UpdatedData, correct), NewData;
+              true -> NewData = update_players_score(Ref, UpdatedData, correct), NewData2 = update_distribution(Index, NewData), NewData2;
               false -> NewData = update_players_score(Ref, UpdatedData, incorrect), NewData
             end;
     false -> Data %send back old Data, so only first guess counts
@@ -61,3 +61,12 @@ update_players_score(Ref, UpdatedData, Correct) ->
       maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total, 0}, maps:get(players, UpdatedData)), UpdatedData)
   end.
 
+init_distribution(1, Map) -> Map#{1 => 0};
+init_distribution(AnswerIndex, Map) -> init_distribution(AnswerIndex-1, Map#{AnswerIndex => 0}).
+
+% update distribution between index and how many times answered
+update_distribution(Index, NewData) ->
+  Dist = maps:get(distribution, NewData),
+  Count = maps:get(Index, Dist),
+  UpdatedDist = Dist#{Index => Count + 1},
+  NewData#{distribution => UpdatedDist}.

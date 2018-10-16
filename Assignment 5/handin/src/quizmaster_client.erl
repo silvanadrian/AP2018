@@ -11,5 +11,6 @@ add_questions() ->
   quizmaster:play(Q),
   {ok, Ref} = quizmaster:join(Q, "Nick"),
   quizmaster:next(Q),
-  quizmaster:guess(Q, Ref, 3).
+  quizmaster:guess(Q, Ref, 3),
+  quizmaster:guess(Q, Ref, 3). % return the same since Nick already guessed once
 

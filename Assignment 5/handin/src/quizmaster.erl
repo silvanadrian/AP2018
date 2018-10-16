@@ -100,8 +100,9 @@ editable(EventType, EventContent, Data) ->
 
 between_questions({call, From}, next, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
-    true -> Question = lists:nth(maps:get(active_question, Data), maps:get(questions, Data)),
-            {next_state, active_question, Data, {reply, From, {ok, Question}}};
+    true -> {Description, Answers} = lists:nth(maps:get(active_question, Data), maps:get(questions, Data)),
+            NewData = Data#{distribution => quizmaster_helpers:init_distribution(length(Answers), #{})},
+            {next_state, active_question, NewData, {reply, From, {ok, {Description, Answers}}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
 
@@ -152,7 +153,7 @@ code_change(_Vsn, State, Data, _Extra) ->
 
 init([]) ->
   %% Set the initial state + data
-  State = editable, Data = #{conductor => none, questions => [], players => #{}, active_question => 1, answered => []},
+  State = editable, Data = #{conductor => none, questions => [], players => #{}, active_question => 1, answered => [], distribution => #{}},
   {ok, State, Data}.
 
 callback_mode() -> state_functions.
