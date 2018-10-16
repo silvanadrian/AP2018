@@ -94,6 +94,7 @@ editable({call, From}, {add_question, Question}, Data) ->
       {keep_state, UpdatedQuestions , {reply, From, ok}};
     {_, []} -> {keep_state, Data , {reply, From, {error, "Question is in wrong format"}}}
   end;
+% catch join message while editable
 editable({call,From}, {join, _Name}, Data) ->
   {keep_state, Data, {reply, From, {error, "Can't join while editable"}}};
 editable(EventType, EventContent, Data) ->
