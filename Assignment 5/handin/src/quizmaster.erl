@@ -4,9 +4,15 @@
 -export([start/0, add_question/2, get_questions/1,
   play/1, next/1, timesup/1,
   join/2, leave/2, guess/3]).
+%% Gen_statem callbacks
 -export([terminate/3, code_change/4, init/1, callback_mode/0]).
 -export([editable/3,between_questions/3,active_question/3]).
 
+%%%-------------------------------------------------------------------
+%%%
+%%% Quizmaster API
+%%%
+%%%-------------------------------------------------------------------
 start() ->
   gen_statem:start({local, quizmaster_server}, ?MODULE, [], []).
 
@@ -34,9 +40,13 @@ leave(Server, Ref) ->
 guess(Server, Ref, Index) ->
   gen_statem:call(Server, {guess, Ref, Index}).
 
+
+
+% get_questions Call
 handle_event({call, From}, get_questions, Data) ->
   Questions = maps:get(questions, Data),
   {keep_state, Data , {reply, From, Questions}};
+% start playing a quiz
 handle_event({call, From}, play, Data) ->
   case Data of
     [] -> {keep_state, Data, {reply, From, {error, no_questions}}};
@@ -84,20 +94,20 @@ editable({call, From}, {add_question, Question}, Data) ->
       {keep_state, UpdatedQuestions , {reply, From, ok}};
     {_, []} -> {keep_state, Data , {reply, From, {error, "Question is in wrong format"}}}
   end;
+editable({call,From}, {join, _Name}, Data) ->
+  {keep_state, Data, {reply, From, {error, "Can't join while editable"}}};
 editable(EventType, EventContent, Data) ->
   handle_event(EventType, EventContent, Data).
 
 between_questions({call, From}, next, Data) ->
-  {Pid, _} = From,
-  case Pid == maps:get(conductor, Data) of
+  case quizmaster_helpers:is_conductor(From, Data) of
     true -> Question = lists:nth(maps:get(active_question, Data), maps:get(questions, Data)),
             NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
             {next_state, active_question, NewData, {reply, From, {ok, Question}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
 between_questions({call, From}, timesup, Data) ->
-  {Pid, _} = From,
-  case Pid == maps:get(conductor, Data) of
+  case quizmaster_helpers:is_conductor(From, Data) of
     true -> {keep_state, Data, {reply, From, {error, no_question_asked}}};
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
@@ -107,14 +117,12 @@ between_questions({call, From}, {leave, Ref}, Data) ->
   handle_event({call, From}, {leave, Ref}, Data).
 
 active_question({call, From}, next, Data) ->
-  {Pid, _} = From,
-  case Pid == maps:get(conductor, Data) of
+  case quizmaster_helpers:is_conductor(From, Data) of
     true -> {keep_state, Data, {reply, From, {error, has_active_question}}};
     false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
 active_question({call, From}, timesup, Data) ->
-  {Pid, _} = From,
-  case Pid == maps:get(conductor, Data) of
+  case quizmaster_helpers:is_conductor(From, Data) of
     true ->
       case length(maps:get(questions,Data)) == maps:get(active_question, Data) of
         true -> {stop_and_reply, normal , {reply, From, {ok, distribution, last_question, total, true}}};
@@ -123,13 +131,12 @@ active_question({call, From}, timesup, Data) ->
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
 active_question({call, From}, {guess, Ref, Index}, Data) ->
-  case Index > 1 of
-
-  end
+  case quizmaster_helpers:check_index_in_range(Index, Data) of
+    true -> {keep_state, Data, {reply, From, {index_in_range}}};
+    false -> {keep_state, Data} % ignore guess if Index out of range
+  end;
 active_question({call, From}, {join, Name}, Data) ->
   handle_event({call, From}, {join, Name}, Data).
-
-
 
 %% Mandatory callback functions
 terminate(_Reason, _State, _Data) ->
@@ -144,6 +151,3 @@ init([]) ->
   {ok, State, Data}.
 
 callback_mode() -> state_functions.
-
-
-
