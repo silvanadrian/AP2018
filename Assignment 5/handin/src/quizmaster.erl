@@ -153,7 +153,7 @@ active_question({call, From}, timesup, Data) ->
           quizmaster_helpers:broadcast_quiz_over(From,maps:get(players, Data)),
           {stop_and_reply, normal, {reply, From, quizmaster_helpers:get_report(Data, true)}};
         false -> NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
-          NewData2 = reset_last_points(NewData),
+          NewData2 = quizmaster_helpers:reset_last_points(NewData),
           Pred = fun(_K, {_, _, _, _, Status2}) -> Status2 == active end,
           NewData3 = NewData2#{players => maps:filter(Pred, maps:get(players, NewData2))},
           {next_state, between_questions, NewData3, {reply, From, quizmaster_helpers:get_report(Data, false)}}
@@ -188,10 +188,3 @@ init([]) ->
 
 callback_mode() -> state_functions.
 
-reset_last_points(Data) ->
-  PlayerList = reset_points(maps:to_list(maps:get(players, Data))),
-  maps:update(players, maps:from_list(PlayerList), Data).
-
-reset_points([]) -> [];
-reset_points([{Ref, {Nickname, Pid, Total, _, Status}} | Players]) ->
-  [{Ref, {Nickname, Pid, Total, 0, Status}} | reset_points(Players)].

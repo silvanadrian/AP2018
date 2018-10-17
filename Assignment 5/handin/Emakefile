@@ -1,0 +1,5 @@
+% compile all erl files with debug_info
+{'./src/*', [debug_info,
+           {i, "."}]}.
+{'./tests/*', [debug_info,
+           {i, "."}]}.

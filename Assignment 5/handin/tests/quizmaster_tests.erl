@@ -1,7 +1,7 @@
--module(quizmaster_client).
--export([add_questions/0]).
+-module(quizmaster_tests).
+-export([do_you_want_to_play_a_game/0]).
 
-add_questions() ->
+do_you_want_to_play_a_game() ->
   {ok, Q} = quizmaster:start(),
   quizmaster:add_question(Q, {"Answer to the Ultimate Question of Life, the Universe, and Everything?", ["43", "34", {correct, "42"}, "24"]}),
   quizmaster:add_question(Q, {"How many i's are in Ken's name?", [{correct, "2"}, "10", {correct, "0"}, "6"]}),
@@ -15,4 +15,3 @@ add_questions() ->
   quizmaster:guess(Q, Ref, 3),
   quizmaster:timesup(Q),
   quizmaster:next(Q).% return the same since Nick already guessed once
-

@@ -1,3 +1,0 @@
-% compile all erl files with debug_info
-{'./*', [debug_info,
-           {i, "."}]}.

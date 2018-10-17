@@ -7,7 +7,10 @@
   init_distribution/2,
   broadcast_next_question/2,
   broadcast_quiz_over/2,
-  get_report/2]).
+  get_report/2,
+  reset_last_points/1,
+  reset_points/1
+  ]).
 
 % check index of guess
 check_index_in_range(Index, _) when Index < 1 -> false;
@@ -111,3 +114,12 @@ remove_correct([Answer | Answers]) ->
     {_, Text} -> [Text | remove_correct(Answers)];
     Text -> [Text | remove_correct(Answers)]
   end.
+
+
+reset_last_points(Data) ->
+  PlayerList = reset_points(maps:to_list(maps:get(players, Data))),
+  maps:update(players, maps:from_list(PlayerList), Data).
+
+reset_points([]) -> [];
+reset_points([{Ref, {Nickname, Pid, Total, _, Status}} | Players]) ->
+  [{Ref, {Nickname, Pid, Total, 0, Status}} | reset_points(Players)].
