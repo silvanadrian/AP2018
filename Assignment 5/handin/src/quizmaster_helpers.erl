@@ -1,5 +1,5 @@
 -module(quizmaster_helpers).
--export([check_index_in_range/2,
+-export([check_index_in_range/3,
   get_active_question/1,
   is_conductor/2,
   check_if_player_exists/2,
@@ -13,8 +13,9 @@
   ]).
 
 % check index of guess
-check_index_in_range(Index, _) when Index < 1 -> false;
-check_index_in_range(Index, Data) when Index > 0 -> index_is_in_range(Index, get_active_question(Data)).
+check_index_in_range(Index, _, _) when Index < 1 -> false;
+check_index_in_range(Index, Data, Ref) when Index > 0 ->
+  index_is_in_range(Index, get_active_question(Data)) and maps:is_key(Ref, maps:get(players, Data)).
 
 index_is_in_range(Index, {_, Answers}) ->
   Index =< length(Answers).

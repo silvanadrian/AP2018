@@ -14,11 +14,5 @@ do_you_want_to_play_a_game() ->
   Player1 = quizmaster_player:start(),
   Player2 = quizmaster_player:start(),
 
-  quizmaster:join(Q, "Nick"), % won't be able to join
-  quizmaster:play(Q),
-  {ok, Ref} = quizmaster:join(Q, "Nick"),
-  quizmaster:next(Q),
-  quizmaster:guess(Q, Ref, 3),
-  quizmaster:guess(Q, Ref, 3),
-  quizmaster:timesup(Q),
-  quizmaster:next(Q).% return the same since Nick already guessed once
+  quizmaster_player:join(Player1, Q, "Jigsaw"),
+  quizmaster_player:join(Player2, Q, "Jason Voorhees").

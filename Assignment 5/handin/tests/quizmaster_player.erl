@@ -1,4 +1,4 @@
--module(player).
+-module(quizmaster_player).
 
 -export([start/0, join/3, leave/2, guess/3, timesup/2, next/2]).
 %% API

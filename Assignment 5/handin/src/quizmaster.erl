@@ -126,7 +126,7 @@ between_questions({call, From}, next, Data) ->
 
 between_questions({call, From}, timesup, Data) ->
   case quizmaster_helpers:is_conductor(From, Data) of
-    true -> {keep_state, Data, {reply, From, {error, no_questions_asked}}};
+    true -> {keep_state, Data, {reply, From, {error, no_question_asked}}};
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
 between_questions({call, From}, {join, Name}, Data) ->
@@ -161,10 +161,10 @@ active_question({call, From}, timesup, Data) ->
   end;
 
 active_question(cast, {guess, Ref, Index}, Data) ->
-  case quizmaster_helpers:check_index_in_range(Index, Data) of
+  case quizmaster_helpers:check_index_in_range(Index, Data, Ref) of
     true -> NewData = quizmaster_helpers:check_guess(Ref, Index, Data),
       {keep_state, NewData};
-    false -> {keep_state, Data} % ignore guess if Index out of range
+    false -> {keep_state, Data} % ignore guess if Index out of range or from a not in players map ref
   end;
 
 active_question({call, From}, {join, Name}, Data) ->

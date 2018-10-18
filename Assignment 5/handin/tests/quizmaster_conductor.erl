@@ -1,4 +1,4 @@
--module(conductor).
+-module(quizmaster_conductor).
 
 -export([start/0, play/2, next/2, timesup/2]).
 %% API
