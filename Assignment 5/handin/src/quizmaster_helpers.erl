@@ -30,7 +30,7 @@ is_conductor({Pid, _}, Data) ->
 
 % check if player exists in players map
 check_if_player_exists(_, []) -> false;
-check_if_player_exists(Nickname, [{Playername, _, _, _, _} | Players]) ->
+check_if_player_exists(Nickname, [{Playername, _, _, _} | Players]) ->
   case Nickname == Playername of
     true -> true;
     false -> check_if_player_exists(Nickname, Players)
@@ -66,11 +66,11 @@ is_correct(Index, {_, Answers}) ->
 update_players_score(Ref, UpdatedData, Correct) ->
   case Correct of
     correct ->
-      {_Nickname, _Pid, Total, _LastScore, Status} = maps:get(Ref, maps:get(players, UpdatedData)),
-      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total + 1, 1, Status}, maps:get(players, UpdatedData)), UpdatedData);
+      {_Nickname, _Pid, Total, _LastScore} = maps:get(Ref, maps:get(players, UpdatedData)),
+      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total + 1, 1}, maps:get(players, UpdatedData)), UpdatedData);
     incorrect ->
-      {_Nickname, _Pid, Total, _LastScore, Status} = maps:get(Ref, maps:get(players, UpdatedData)),
-      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total, 0, Status}, maps:get(players, UpdatedData)), UpdatedData)
+      {_Nickname, _Pid, Total, _LastScore} = maps:get(Ref, maps:get(players, UpdatedData)),
+      maps:update(players, maps:update(Ref, {_Nickname, _Pid, Total, 0}, maps:get(players, UpdatedData)), UpdatedData)
   end.
 
 init_distribution(1, Map) -> Map#{1 => 0};
@@ -85,14 +85,14 @@ update_distribution(Index, NewData) ->
 
 % broadcast next_question to all players
 broadcast_next_question({_Description, _Answers}, []) -> void;
-broadcast_next_question({Description, Answers}, [{Ref, {_, Pid, _, _, _}} | Players]) ->
+broadcast_next_question({Description, Answers}, [{Ref, {_, Pid, _, _}} | Players]) ->
   NewAnswers = remove_correct(Answers),
   Pid ! {next_question, Ref, {Description, NewAnswers}},
   broadcast_next_question({Description, Answers}, Players).
 
 % broadcast next_question to all players
 broadcast_quiz_over({_,_}, []) -> void;
-broadcast_quiz_over({Q,_}, [{_, {_, Pid, _, _, _}} | Players]) ->
+broadcast_quiz_over({Q,_}, [{_, {_, Pid, _, _}} | Players]) ->
   Pid ! {Q, quiz_over},
   broadcast_quiz_over(Q, Players).
 
@@ -102,11 +102,11 @@ get_report(Data, LastQ) ->
   {ok, maps:values(maps:get(distribution, Data)), maps:from_list(LastPoints), maps:from_list(TotalPoints), LastQ}.
 
 get_points_last_question([]) -> [];
-get_points_last_question([{_Ref, {Name, _Pid, _Total, LastScore, _}} | T]) ->
+get_points_last_question([{_Ref, {Name, _Pid, _Total, LastScore}} | T]) ->
   [{Name, LastScore} | get_points_last_question(T)].
 
 get_points_total([]) -> [];
-get_points_total([{_Ref, {Name, _Pid, Total, _LastScore, _}} | T]) ->
+get_points_total([{_Ref, {Name, _Pid, Total, _LastScore}} | T]) ->
   [{Name, Total} | get_points_total(T)].
 
 remove_correct([]) -> [];
@@ -122,5 +122,5 @@ reset_last_points(Data) ->
   maps:update(players, maps:from_list(PlayerList), Data).
 
 reset_points([]) -> [];
-reset_points([{Ref, {Nickname, Pid, Total, _, Status}} | Players]) ->
-  [{Ref, {Nickname, Pid, Total, 0, Status}} | reset_points(Players)].
+reset_points([{Ref, {Nickname, Pid, Total, _}} | Players]) ->
+  [{Ref, {Nickname, Pid, Total, 0}} | reset_points(Players)].

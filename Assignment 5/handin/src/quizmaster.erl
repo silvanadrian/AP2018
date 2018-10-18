@@ -49,23 +49,11 @@ handle_event({call, From}, get_questions, Data) ->
 handle_event({call, From}, {join, Nickname}, Data) ->
   PlayersValues = maps:values(maps:get(players, Data)),
   case quizmaster_helpers:check_if_player_exists(Nickname, PlayersValues) of
-    true ->
-      PredNickname = fun(_K, {Name, _, _, _, _}) -> Nickname == Name end,
-      PlayersMap = maps:filter(PredNickname, maps:get(players, Data)),
-      case maps:size(PlayersMap) of
-        1 -> [{Ref, {NName, Pid, Total, LastQ, Status}} | _] = maps:to_list(PlayersMap),
-          case Status of
-            active -> {keep_state, Data, {reply, From, {error, is_taken}}};
-            inactive -> NewData = Data#{players => PlayersMap#{Ref => {NName, Pid, Total, LastQ, active}}},
-              maps:get(conductor, NewData) ! {player_joined, Nickname, maps:size(maps:get(players, NewData))},
-              {keep_state, NewData, {reply, From, {ok, Ref}}}
-          end;
-        _ -> {keep_state, Data, {reply, From, {error, is_taken}}}
-      end;
-    false -> {Pid, _} = From,
+    true -> {keep_state, Data, {reply, From, {error, is_taken}}};
+    false ->  {Pid, _} = From,
       PlayersMap = maps:get(players, Data),
       Ref = make_ref(),
-      NewData = Data#{players => PlayersMap#{Ref => {Nickname, Pid, 0, 0, active}}},
+      NewData = Data#{players => PlayersMap#{Ref => {Nickname, Pid, 0, 0}}},
       maps:get(conductor, NewData) ! {player_joined, Nickname, maps:size(maps:get(players, NewData))},
       {keep_state, NewData, {reply, From, {ok, Ref}}}
   end;
@@ -73,17 +61,12 @@ handle_event({call, From}, {join, Nickname}, Data) ->
 handle_event({call, From}, {leave, Ref}, Data) ->
   case maps:is_key(Ref, maps:get(players, Data)) of
     true ->
-      {Nickname, Pid, Total, LastScore, Status} = maps:get(Ref, maps:get(players, Data)),
-      case Status of
-        active ->
-          UpdatedPlayers = maps:update(Ref, {Nickname, Pid, Total, LastScore, inactive}, maps:get(players, Data)),
-          NewData = maps:update(players, UpdatedPlayers, Data),
-          Pred = fun(_K, {_, _, _, _, Status2}) -> Status2 == active end,
-          maps:get(conductor, NewData) ! {player_left, Nickname, maps:size(maps:filter(Pred, maps:get(players, NewData)))},
-          {keep_state, NewData, {reply, From, ok}};
-        inactive -> {keep_state, Data, {reply, From, {error, who_are_you}}}
-      end;
-    false -> {keep_state, Data, {reply, From, {error, who_are_you}}}
+      {Nickname, _, _, _} = maps:get(Ref, maps:get(players, Data)),
+      UpdatedPlayers = maps:remove(Ref, maps:get(players, Data)),
+      NewData = maps:update(players, UpdatedPlayers, Data),
+      maps:get(conductor, NewData) ! {player_left, Nickname, maps:size(maps:get(players, NewData))},
+      {keep_state, NewData, {reply, From, ok}};
+    false ->  {keep_state, Data, {reply, From, {error, who_are_you}}}
   end;
 
 % ignore all other unhandled events
@@ -149,13 +132,11 @@ active_question({call, From}, timesup, Data) ->
     true ->
       case length(maps:get(questions, Data)) == maps:get(active_question, Data) of
         true ->
-          quizmaster_helpers:broadcast_quiz_over(From,maps:get(players, Data)),
+          quizmaster_helpers:broadcast_quiz_over(From,maps:to_list(maps:get(players, Data))),
           {stop_and_reply, normal, {reply, From, quizmaster_helpers:get_report(Data, true)}};
         false -> NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
           NewData2 = quizmaster_helpers:reset_last_points(NewData),
-          Pred = fun(_K, {_, _, _, _, Status2}) -> Status2 == active end,
-          NewData3 = NewData2#{players => maps:filter(Pred, maps:get(players, NewData2))},
-          {next_state, between_questions, NewData3, {reply, From, quizmaster_helpers:get_report(Data, false)}}
+          {next_state, between_questions, NewData2, {reply, From, quizmaster_helpers:get_report(Data, false)}}
       end;
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
