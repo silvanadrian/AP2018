@@ -31,12 +31,11 @@ breaklines}
 \subsection{Files}
 All Files are situated in the \textbf{src/} folder:
 \begin{itemize}
-	\item \textbf{flamingo.erl} The flamingo server implmentation
-	\item \textbf{greetings.erl} The greetings module implementation
-	\item \textbf{hello.erl} The hello module implementation
-	\item \textbf{mood.erl} Mood module implementation
-	\item \textbf{counter.erl} Counter module implementation
-	\item \textbf{test\_xxx.erl} Tests for each module
+	\item \textbf{src/quizmaster.erl} The quizmaster Server implementation
+	\item \textbf{src/quizmaster\_helpers.erl} The greetings module implementation
+	\item \textbf{tests/quizmaster\_conductor.erl} Conductor Implementation for testing
+	\item \textbf{tests/quizmaster\_player.erl} Player implementation for testing
+	\item \textbf{tests/quizmaster\_tests.erl} Counter module implementation
 \end{itemize}
 
 \subsection{Running the programm}
@@ -48,11 +47,7 @@ make:all([load]).
 \end{minted}
 
 \subsection{Running the tests}
-The tests can be run with eunit, we included tests for each module in a own file.
-Example running tests for flamingo:
-\begin{minted}{erlang}
-eunit:test(test_flamingo, [verbose]).
-\end{minted}
+The tests are no eunit tests but rather a fe functions in quizmaster\_tests.erl, which test the functionality of the quizmaster server by playing a game or other functionality.
 
 \section{Implementation}
 \subsection{Gen-Statem}
@@ -68,19 +63,45 @@ The Quizmaster has overall 3 important states:
 \begin{center}
 		\includegraphics[width=0.8\textwidth]{images/Quizmaster}
 \end{center}
-	\caption{Simple drawing of quizmaster state machine}
+	\caption{Simple drawing of the quizmaster state machine}
 \end{figure}
 
 \subsection{Data Structure}
-
+Data with which we loop is a map with following entries:
+\begin{itemize}
+	\item \textbf{conductor} The Pid of the Conductor (Gamemaker)
+	\item \textbf{questions} all questions which belong to a quiz
+	\item \textbf{players} all joined players (we chose to either have active or inactive players (left the game) -> to get through the tests of OnlineTA -> just by guessing)
+	\item \textbf{active\_question} The index of the active question (in the questions list)
+	\item \textbf{answered} Saving the first guess for each player, to be sure only one guess can be made for each question
+	\item \textbf{distribution} the distribution of the current active question which shows which index has be chosen how many times
+\end{itemize}
 
 \subsection{Editable state}
+In the editable state the quiz can be modified, meaning new questions can be added or all existing questions can be retrieved.
+
+\subsubsection{get\_questions}
+Get all added questions.
+
+\subsubsection{add\_question}
+So the message add\_question adds a new question to the server state, with whom we loop further.
+The question does have to in the format:
+\begin{minted}{erlang}
+[Description, [Answers]]
+\end{minted}
+
+In case the question doesn't fit the format we will get an error back that we tried to add a question in the wrong format
+
+
 \subsection{Between\_questions state}
 \subsection{Active\_question state}
 
 needs to be improved
 
 \section{Assessment}
+
+\subsection{OnlineTA}
+OnlineTA gave ok results back but only the last test wasn't able to fully run through and the end we ended up with guessing what exactly is wished what we implement to get through all test cases, so we gave up in th
 
 \subsection{Scope of Test Cases}
 
