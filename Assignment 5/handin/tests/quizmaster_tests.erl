@@ -55,7 +55,7 @@ join_player_test() ->
   Player1 = quizmaster_player:start(self()),
   quizmaster_player:join(Player1, Q, "jigsaw"),
   receive
-    {player, Message} -> ?assertMatch({ok,_}, Message)
+    {player, Msg} -> ?assertMatch({ok, _}, Msg)
   end,
   ?assertEqual({player, {error,is_taken}},quizmaster_player:join(Player1, Q, "jigsaw")),
   Player2 = quizmaster_player:start(self()),
@@ -63,6 +63,25 @@ join_player_test() ->
   receive
     {player, Message2} -> ?assertMatch({ok,_}, Message2)
   end.
+
+next_test() ->
+  {ok, Q} = quizmaster:start(),
+  quizmaster_add_example_questions(Q),
+
+  C = quizmaster_conductor:start(self()),
+  quizmaster_conductor:play(C, Q),
+
+  Player1 = quizmaster_player:start(self()),
+  quizmaster_player:join(Player1, Q, "jigsaw"),
+  receive
+    {player, Message} -> ?assertMatch({ok,_}, Message)
+  end,
+  Player2 = quizmaster_player:start(self()),
+  quizmaster_player:join(Player2, Q, "Jason Voorhees"),
+  receive
+    {player, Message2} -> ?assertMatch({ok,_}, Message2)
+  end,
+  quizmaster_conductor:next(C, Q).
 
 
 quizmaster_server() ->

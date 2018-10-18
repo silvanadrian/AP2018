@@ -32,29 +32,21 @@ request_reply(Pid, Request) ->
 loop({Pid, Ref, Name}) ->
   receive
     {From, timesup, Quiz} ->
-      Response = quizmaster:timesup(Quiz),
-      io:fwrite("Player ~p received a message : ~p~n", [Name, Response]),
+      From ! {player, quizmaster:timesup(Quiz)},
       loop({Pid, Ref, Name});
     {From, next, Quiz} ->
-      Response = quizmaster:next(Quiz),
-      io:fwrite("Player ~p received a message : ~p~n", [Name, Response]),
+      From ! {player, quizmaster:next(Quiz)},
       loop({Ref, Name});
     {From, {join, NameN, Quiz}} ->
       From ! {player, quizmaster:join(Quiz, NameN)},
       loop({Pid, Ref, Name});
     {From, leave, Quiz} ->
-      case quizmaster:leave(Quiz, Ref) of
-        ok ->
-          io:fwrite("Player ~p left from game!~n", [Name]);
-        {error, who_are_you} ->
-          io:fwrite("Player ~p can't leave the game!~n", [Name]),
-          loop({Ref, Name})
-      end;
+      From ! {player, quizmaster:leave(Quiz, Ref)},
+      loop({Pid,Ref, Name});
     {From, guess, Index, Quiz} ->
-      _ = quizmaster:guess(Quiz, Ref, Index),
+      From ! {player, quizmaster:guess(Quiz, Ref, Index)},
       loop({Pid, Ref, Name});
     Msg ->
-      io:fwrite("Player ~p received a message : ~p~n", [Name, Msg]),
       Pid ! Msg,
       loop({Pid, Ref, Name})
   end.

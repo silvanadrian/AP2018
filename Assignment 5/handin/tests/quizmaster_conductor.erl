@@ -16,21 +16,21 @@ timesup(Pid, Quiz) ->
 request_reply(Pid, Request) ->
   Pid ! Request,
   receive
-    Msg -> Msg
+    Msg -> {conductor, Msg}
   end.
 
 loop(Pid) ->
   receive
     {play, Quiz} ->
-      Pid ! {conductor, quizmaster:play(Quiz)},
+      Pid ! quizmaster:play(Quiz),
       loop(Pid);
     {next, Quiz} ->
-      Pid ! {conductor, quizmaster:next(Quiz)},
+      Pid ! quizmaster:next(Quiz),
       loop(Pid);
     {timesup, Quiz} ->
-      Pid ! {conductor, quizmaster:timesup(Quiz)},
+      Pid ! quizmaster:timesup(Quiz),
       loop(Pid);
     Msg ->
-      Pid ! {conductor, Msg},
+      Pid ! Msg,
       loop(Pid)
   end.
