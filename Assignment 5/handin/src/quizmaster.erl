@@ -96,8 +96,7 @@ editable({call, From}, {add_question, Question}, Data) ->
       UpdatedQuestions = maps:update(questions, lists:append(OldQuestions, [Question]), Data),
       {keep_state, UpdatedQuestions, {reply, From, ok}};
     {_, []} -> {keep_state, Data, {reply, From, {error, "Question is in wrong format"}}};
-    _ ->
-      {keep_state, Data, [{reply, From, {error, "Wrong Format"}}]}
+    _ -> {keep_state, Data, [{reply, From, {error, "Wrong Format"}}]}
   end;
 
 % start playing a quiz -> change state to between_questions

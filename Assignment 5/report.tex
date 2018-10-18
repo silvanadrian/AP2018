@@ -71,37 +71,85 @@ Data with which we loop is a map with following entries:
 \begin{itemize}
 	\item \textbf{conductor} The Pid of the Conductor (Gamemaker)
 	\item \textbf{questions} all questions which belong to a quiz
-	\item \textbf{players} all joined players (we chose to either have active or inactive players (left the game) -> to get through the tests of OnlineTA -> just by guessing)
+	\item \textbf{players} all joined players (we chose to either have active or inactive players (left the game) to get through the tests of OnlineTA)
 	\item \textbf{active\_question} The index of the active question (in the questions list)
 	\item \textbf{answered} Saving the first guess for each player, to be sure only one guess can be made for each question
 	\item \textbf{distribution} the distribution of the current active question which shows which index has be chosen how many times
 \end{itemize}
 
-\subsection{Editable state}
-In the editable state the quiz can be modified, meaning new questions can be added or all existing questions can be retrieved.
-
+\subsection{All states}
+Messages which get accepted in all states.
 \subsubsection{get\_questions}
 Get all added questions.
+
+\subsection{Editable state}
+In the editable state the quiz can be modified, meaning new questions can be added, join is not allowed.
 
 \subsubsection{add\_question}
 So the message add\_question adds a new question to the server state, with whom we loop further.
 The question does have to in the format:
+\begin{figure}
 \begin{minted}{erlang}
 [Description, [Answers]]
 \end{minted}
+\caption{Question Format}
+\end{figure}
 
-In case the question doesn't fit the format we will get an error back that we tried to add a question in the wrong format
+In case the question doesn't fit the format we will get an error back that we tried to add a question in the wrong format, but we don't check if there is a correct answer added (so technically can add a question without any correct answers).
+\begin{figure}
+\begin{minted}{erlang}
+{error, "Question is in wrong format"}
+{error, "Wrong Format"}
+\end{minted}
+\caption{Error Messages}
+\end{figure}
 
+\subsubsection{Play}
+When all Questions have been added a Quiz can be played, which means it changes it's state to between\_questions and no more questions can be added.
+Additionally the Conductor gets set (any process which calls play first).
+
+\subsubsection{Other Messages}
+All other messages get ignored in the editable state.
 
 \subsection{Between\_questions state}
-\subsection{Active\_question state}
+In between\_questions new Players can join/leave and the next question can be set to active.
 
-needs to be improved
+\subsubsection{join}
+When joining we check if the nickname already exists, is this is the case then we set the existing player to active again otherwise add it as a new player to the players map in data.
+And send a message to the conductor by announcing a new player has joined.
+
+\subsubsection{leave}
+When a player leaves the nickname will still exist in the players map, only his status will be set to inactive so that the player still shows in the Report after timesup (this way the distribution still makes sense).
+
+\subsubsection{next}
+Select the next active question (according to the index in data), the state also changes to active\_question.
+Next can be only called by the conductor, which gets checked against the one saved in data.
+Additionally the next question get broadcasted to all joined players, with the Description and the Answers (removing the correct).
+
+\subsubsection{timesup}
+Return a error in between\_questions since there is no active question.
+
+\subsection{Active\_question state}
+In Active question a player can join or leave, and the players can make guesses. The conductor then can run timesup to finish up the round and change back to between\_questions state.
+
+\subsubsection{join}
+Same as in between\_questions.
+
+\subsubsection{leave}
+Same as in between\_questions.
+
+\subsubsection{guess}
+A guess can be made on a specific index which then either gives a point (if correct answer) or just gets counted into the distribution of the guesses.
+If the guess is on a wrong index then the guess is going to be ignored.
+
+\subsubsection{timesup}
+Timesup get called by the conductor and only by him, by doing that the state gets changed back to in between\_questions and a reports gets sent out (with distribution, score of all players etc.).
+In case it was the last question then all players get a Message with quiz\_over.
 
 \section{Assessment}
 
 \subsection{OnlineTA}
-OnlineTA gave ok results back but only the last test wasn't able to fully run through and the end we ended up with guessing what exactly is wished what we implement to get through all test cases, so we gave up in th
+OnlineTA gave ok results back but only the last test wasn't able to fully run through and the end we ended up with guessing what exactly is wished what we implement to get through all test cases, so we gave up in the end.
 
 \subsection{Scope of Test Cases}
 

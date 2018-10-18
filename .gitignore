@@ -1,6 +1,8 @@
 # Mac Ignore DS_Store Files
 .DS_Store
 
+node_modules/
+
 *.iml
 .idea/
 
