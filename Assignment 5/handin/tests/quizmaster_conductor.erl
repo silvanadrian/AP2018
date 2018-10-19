@@ -16,21 +16,28 @@ timesup(Pid, Quiz) ->
 request_reply(Pid, Request) ->
   Pid ! Request,
   receive
-    Msg -> {conductor, Msg}
+    Msg -> Msg
   end.
 
 loop(Pid) ->
   receive
     {play, Quiz} ->
-      Pid ! quizmaster:play(Quiz),
+      Pid ! {conductor, quizmaster:play(Quiz)},
       loop(Pid);
     {next, Quiz} ->
-      Pid ! quizmaster:next(Quiz),
+      Pid ! {conductor, quizmaster:next(Quiz)},
       loop(Pid);
     {timesup, Quiz} ->
-      Pid ! quizmaster:timesup(Quiz),
+      case quizmaster:timesup(Quiz) of
+        {OK, Dist, LastQ, Total, Final} ->
+          Pid ! {conductor, {OK, Dist, maps:to_list(LastQ), maps:to_list(Total), Final}};
+        {error,no_question_asked} ->
+          Pid ! {conductor, {error,no_question_asked}};
+        {error,nice_try} ->
+          Pid ! {conductor, {error,nice_try}}
+      end,
       loop(Pid);
-    Msg ->
-      Pid ! Msg,
+    _ ->
+      % ignore all other messages for easier testing
       loop(Pid)
   end.

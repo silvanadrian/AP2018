@@ -92,9 +92,9 @@ broadcast_next_question({Description, Answers}, [{Ref, {_, Pid, _, _}} | Players
 
 % broadcast next_question to all players
 broadcast_quiz_over({_,_}, []) -> void;
-broadcast_quiz_over({Q,_}, [{_, {_, Pid, _, _}} | Players]) ->
+broadcast_quiz_over({Q,O}, [{_, {_, Pid, _, _}} | Players]) ->
   Pid ! {Q, quiz_over},
-  broadcast_quiz_over(Q, Players).
+  broadcast_quiz_over({Q,O}, Players).
 
 get_report(Data, LastQ) ->
   LastPoints = get_points_last_question(maps:to_list(maps:get(players, Data))),

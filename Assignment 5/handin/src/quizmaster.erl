@@ -135,7 +135,7 @@ active_question({call, From}, timesup, Data) ->
           {stop_and_reply, normal, {reply, From, quizmaster_helpers:get_report(Data, true)}};
         false -> NewData = maps:update(active_question, map_get(active_question, Data) + 1, Data),
           NewData2 = quizmaster_helpers:reset_last_points(NewData),
-          {next_state, between_questions, NewData2, {reply, From, quizmaster_helpers:get_report(Data, false)}}
+          {next_state, between_questions, NewData2#{answered => []}, {reply, From, quizmaster_helpers:get_report(Data, false)}}
       end;
     false -> {keep_state, Data, {reply, From, {error, nice_try}}}
   end;
