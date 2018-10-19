@@ -35,7 +35,7 @@ All Files are situated in the \textbf{src/} folder:
 	\item \textbf{src/quizmaster\_helpers.erl} The greetings module implementation
 	\item \textbf{tests/quizmaster\_conductor.erl} Conductor Implementation for testing
 	\item \textbf{tests/quizmaster\_player.erl} Player implementation for testing
-	\item \textbf{tests/quizmaster\_tests.erl} Counter module implementation
+	\item \textbf{tests/quizmaster\_tests.erl} Eunit Tests for quizmaster
 \end{itemize}
 
 \subsection{Running the programm}
@@ -47,7 +47,10 @@ make:all([load]).
 \end{minted}
 
 \subsection{Running the tests}
-The tests are no eunit tests but rather a fe functions in quizmaster\_tests.erl, which test the functionality of the quizmaster server by playing a game or other functionality.
+The tests can be run this way:
+\begin{minted}{erlang}
+eunit:test(quizmaster_tests, [verbose]).
+\end{minted}
 
 \section{Implementation}
 \subsection{Gen-Statem}
@@ -59,13 +62,14 @@ The Quizmaster has overall 3 important states:
 	\item active\_question
 \end{itemize} 
 
-\begin{figure}
+\begin{figure}[!htb]
 \begin{center}
-		\includegraphics[width=0.8\textwidth]{images/Quizmaster}
+		\includegraphics[width=0.65\textwidth]{images/Quizmaster}
 \end{center}
 	\caption{Simple drawing of the quizmaster state machine}
 \end{figure}
 
+\newpage
 \subsection{Data Structure}
 Data with which we loop is a map with following entries:
 \begin{itemize}
@@ -152,13 +156,20 @@ In case it was the last question then all players get a Message with quiz\_over.
 OnlineTA gave ok results back but only the last test wasn't able to fully run through and the end we ended up with guessing what exactly is wished what we implement to get through all test cases, so we gave up in the end.
 
 \subsection{Scope of Test Cases}
+We tried to test all possible good and error cases, but to make it a little easier we ignored some of the messages that get sent (see quizmaster\_conductor, quizmaster\_player).
+So overall our tests should tests most cases but not all of them.
 
 \subsection{Correctness}
+In our opinion, we tested possible edge cases but nonetheless the onlineTA end up in a error in the last test, which we weren't able to find out why.
+So the Solution is not fully correct and still seems to miss a few things, but since it would need too much time to fix those we finished it earlier.
 
 \subsection{Code Quality}
-
+There are lots of things which could be made easier in the code, especially lots of duplicated code which could be moved into own helper methods to keep quizmaster.erl more clean.
+Especially in this assignment the quizmaster file got quite big and we just tried to make it a little better by moving some functions into the quizmaster\_helpers.erl file.
 
 \appendix
 \section{Code Listing}
+\inputminted{erlang}{handin/src/quizmaster.erl}
+\inputminted{erlang}{handin/src/quizmaster_helpers.erl}
 
-\end{document}}
+\end{document}
