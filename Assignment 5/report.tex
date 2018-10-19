@@ -92,7 +92,7 @@ In the editable state the quiz can be modified, meaning new questions can be add
 \subsubsection{add\_question}
 So the message add\_question adds a new question to the server state, with whom we loop further.
 The question does have to in the format:
-\begin{figure}
+\begin{figure}[!htb]
 \begin{minted}{erlang}
 [Description, [Answers]]
 \end{minted}
@@ -100,7 +100,7 @@ The question does have to in the format:
 \end{figure}
 
 In case the question doesn't fit the format we will get an error back that we tried to add a question in the wrong format, but we don't check if there is a correct answer added (so technically can add a question without any correct answers).
-\begin{figure}
+\begin{figure}[!htb]
 \begin{minted}{erlang}
 {error, "Question is in wrong format"}
 {error, "Wrong Format"}

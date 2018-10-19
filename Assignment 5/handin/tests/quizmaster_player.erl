@@ -1,9 +1,8 @@
 -module(quizmaster_player).
 
 -export([start/1, join/3, leave/3, guess/4, timesup/2, next/2]).
-%% API
 
-start(Q) -> spawn(fun() -> loop({Q, void}) end).
+start(Q) -> spawn(fun() -> loop(Q) end).
 
 join(Pid, Quiz, Name) ->
   request_reply(Pid, {join, Name, Quiz}).
@@ -20,31 +19,29 @@ timesup(Pid, Quiz) ->
 next(Pid, Quiz) ->
   request_reply(Pid, {next, Quiz}).
 
-%% Internal implementation
-
 request_reply(Pid, Request) ->
   Pid ! {Pid, Request},
   receive
     Msg -> Msg
   end.
 
-loop({Pid, Name}) ->
+loop(Pid) ->
   receive
     {From, timesup, Quiz} ->
       From ! {player, quizmaster:timesup(Quiz)},
-      loop({Pid, Name});
+      loop(Pid);
     {From, next, Quiz} ->
       From ! {player, quizmaster:next(Quiz)},
-      loop({Pid, Name});
-    {From, {join, NameN, Quiz}} ->
-      From ! {player, quizmaster:join(Quiz, NameN)},
-      loop({Pid, Name});
+      loop(Pid);
+    {From, {join, Name, Quiz}} ->
+      From ! {player, quizmaster:join(Quiz, Name)},
+      loop(Pid);
     {From, {leave, Quiz, Ref}} ->
       From ! {player, quizmaster:leave(Quiz, Ref)},
-      loop({Pid, Name});
+      loop(Pid);
     {From, {guess, Index, Quiz, Ref}} ->
       From ! {player, quizmaster:guess(Quiz, Ref, Index)},
-      loop({Pid, Name});
+      loop(Pid);
     Msg ->
       % irgnore all other cases for easier testing
       case Msg of
@@ -53,6 +50,5 @@ loop({Pid, Name}) ->
         {player, ok} -> Pid ! Msg;
           _ -> void
       end,
-      %Pid ! Msg,
-      loop({Pid, Name})
+      loop(Pid)
   end.
